@@ -4,8 +4,11 @@
 
 # CODE BELOW IS THE BASE STARTING CODE FROM PYGAME, TO TEST THE GAME.
 
-# initialize pygame
+# IMPORT
 import pygame
+import time
+from snake import Snake
+from food import Food
 
 # pygame setup
 pygame.init()
@@ -21,8 +24,8 @@ GRID_HEIGHT = 25  # Adjust to fit only the visible vertical area, or add padding
 GRID_TOP_LEFT_X = 0   # X offset (800 - 750) / 2 = 25
 GRID_TOP_LEFT_Y = 101  # Padding from top to leave space for scoreboard
 
-snake_positions = [(5, 10), (4, 10), (3, 10)]  # head, body, tail
-food_position = (12, 18)
+snake = Snake([(5, 10), (4, 10), (3, 10)])
+food = Food(25, 25)
 
 # functions
 def grid_to_pixel(col, row):
@@ -30,58 +33,72 @@ def grid_to_pixel(col, row):
     y = GRID_TOP_LEFT_Y + row * CELL_SIZE
     return (x, y)
 
-# background
+# import background
 background = pygame.image.load("assets/playbackground_hard.png").convert()
+
+# import scoreboard
 scoreboard = pygame.image.load("assets/scoreboard.png").convert_alpha()
 scoreboard.set_colorkey((255, 255, 255))  # Make white transparent
 scoreboard = pygame.transform.scale(scoreboard, (250, 115))  # new width x height
 
-# import snake assets
-snake_head = pygame.image.load("assets/snake_head.png").convert()
-snake_head.set_colorkey((255, 255, 255))
-snake_head = pygame.transform.scale(snake_head, (25, 25))
-
-snake_body = pygame.image.load("assets/snake_body.png").convert()
-snake_body.set_colorkey((255, 255, 255))
-snake_body = pygame.transform.scale(snake_body, (25, 25))
-
-snake_tail = pygame.image.load("assets/snake_tail.png").convert()
-snake_tail.set_colorkey((255, 255, 255))
-snake_tail = pygame.transform.scale(snake_tail, (25, 25))
-
-# import and resize food
-food = pygame.image.load("assets/food.png").convert_alpha()
-food.set_colorkey((255, 255, 255))
-food = pygame.transform.scale(food, (25, 25))
-
+last_move_time = time.time()
+move_delay = 1
+has_moved = False
 
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            snake.set_direction(event.key)
+            has_moved = True  # Only start moving after a key is pressed
 
-    # fill the screen the background
+
+    current_time = time.time()
+    if has_moved and current_time - last_move_time > move_delay:
+        snake.move(snake.direction)
+        last_move_time = current_time
+
+    # fill the screen with the background
     screen.blit(background, (0, 0))
+    # fill the screen with the scoreboard
     screen.blit(scoreboard, (275, 5))
 
-    for i, segment in enumerate(snake_positions):
+    # SNAKE ORIENTATION
+    if snake.direction == 'UP':
+        head_img = snake.get_head_image(snake.direction)
+    elif snake.direction == 'DOWN':
+        head_img = snake.get_head_image(snake.direction)
+    elif snake.direction == 'LEFT':
+        head_img = snake.get_head_image(snake.direction)
+    elif snake.direction == 'RIGHT':
+        head_img = snake.get_head_image(snake.direction)
+
+    positions = snake.get_positions()
+
+    for i, segment in enumerate(positions):
         if i == 0:
-            screen.blit(snake_head, grid_to_pixel(*segment))
-        elif i == len(snake_positions) - 1:
-            screen.blit(snake_tail, grid_to_pixel(*segment))
+            # HEAD
+            head_img = snake.get_head_image(snake.direction)
+            screen.blit(head_img, grid_to_pixel(*segment))
+        elif i == len(positions) - 1:
+            # TAIL
+            prev_pos = positions[i - 1]
+            tail_img = snake.get_tail_image(prev_pos, segment)
+            screen.blit(tail_img, grid_to_pixel(*segment))
         else:
-            screen.blit(snake_body, grid_to_pixel(*segment))
+            # BODY
+            prev_pos = positions[i - 1]
+            next_pos = positions[i + 1]
+            body_img = snake.get_body_image(prev_pos, segment, next_pos)
+            screen.blit(body_img, grid_to_pixel(*segment))
 
-    screen.blit(food, grid_to_pixel(*food_position))
-
-
-    # RENDER YOUR GAME HERE
+        screen.blit(food.image, grid_to_pixel(*food.position))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
 
     clock.tick(60)  # limits FPS to 60
 
+# exit game
 pygame.quit()
