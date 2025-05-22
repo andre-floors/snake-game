@@ -104,6 +104,6 @@ This project is open-source and free to use for educational purposes.
 
 ---
 
-**Developed by Andre Ryan F. Flores**
-for Data Structures & Algorithms – BSIT 2-2
+**Developed by Andre Ryan F. Flores**<br />
+for Data Structures & Algorithms – BSIT 2-2<br />
 Cavite State University - Bacoor City Campus
