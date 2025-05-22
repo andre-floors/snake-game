@@ -16,14 +16,14 @@ screen = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
 running = True
 
-# initialize important variables
+# grid and cell sizes
 CELL_SIZE = 25
-GRID_WIDTH = 25
-GRID_HEIGHT = 25  # Adjust to fit only the visible vertical area, or add padding if needed
+GRID_WIDTH = 30
+GRID_HEIGHT = 26
+GRID_TOP_LEFT_X = 0
+GRID_TOP_LEFT_Y = 101
 
-GRID_TOP_LEFT_X = 0   # X offset (800 - 750) / 2 = 25
-GRID_TOP_LEFT_Y = 101  # Padding from top to leave space for scoreboard
-
+# base coordinates for snake and food
 snake = Snake([(5, 10), (4, 10), (3, 10)])
 food = Food(25, 25)
 
@@ -42,7 +42,7 @@ scoreboard.set_colorkey((255, 255, 255))  # Make white transparent
 scoreboard = pygame.transform.scale(scoreboard, (250, 115))  # new width x height
 
 last_move_time = time.time()
-move_delay = 1
+move_delay = 0.15
 has_moved = False
 
 while running:
@@ -51,13 +51,26 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             snake.set_direction(event.key)
-            has_moved = True  # Only start moving after a key is pressed
+    
+            # Move after WASD keys are pressed
+            if event.key in (pygame.K_w, pygame.K_s, pygame.K_d):
+                has_moved = True
 
+    # Check for collision against boundaries
+    if snake.is_collision() or snake.is_self_collision():
+        print("Game Over: Collision detected")
+        running = False
 
+    # Movement speed of snake
     current_time = time.time()
     if has_moved and current_time - last_move_time > move_delay:
         snake.move(snake.direction)
         last_move_time = current_time
+
+    # Check for food collision
+    if snake.get_positions()[0] == food.position:
+        snake.grow()  # Tell snake to grow next move
+        food.position = food.random_position()  # Respawn food
 
     # fill the screen with the background
     screen.blit(background, (0, 0))

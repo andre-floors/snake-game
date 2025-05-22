@@ -11,6 +11,6 @@ class Food:
         self.position = self.random_position()
 
     def random_position(self):
-        col = random.randint(0, self.grid_width - 1)
-        row = random.randint(0, self.grid_height - 1)
+        col = random.randint(1, self.grid_width)   # x = 1 to 30
+        row = random.randint(1, self.grid_height)  # y = 1 to 26
         return (col, row)
