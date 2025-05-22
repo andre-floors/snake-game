@@ -47,11 +47,13 @@ This Snake game implements a grid-based gameplay where the snake moves around co
 ### Steps:
 
 1. Clone this repository:
-   ```bash
+   ```
    git clone https://github.com/yourusername/snake-game.git
    cd snake-game
 2. Install pygame (if not installed) by entering the command into cmd (Command Prompt):
-   ```pip install pygame
+   ```
+   pip install pygame
 
 3. Run the game
-   ```python main.py
+   ```
+   python main.py
