@@ -15,6 +15,7 @@ class Snake:
 
         self.direction = 'RIGHT'
         self.should_grow = False
+        self.growth_pending = 0
 
         # Load and scale images
         self.head_img = pygame.image.load("assets/snake_head1.png").convert()
@@ -59,10 +60,10 @@ class Snake:
         new_node.next = self.head
         self.head = new_node
 
-        if self.should_grow:
-            self.should_grow = False  # reset grow flag
+        # Only remove tail if we're not growing
+        if self.growth_pending > 0:
+            self.growth_pending -= 1
         else:
-            # remove the tail
             current = self.head
             while current.next and current.next.next:
                 current = current.next
@@ -152,5 +153,5 @@ class Snake:
         angle = rotations.get(direction, 0)
         return pygame.transform.rotate(self.head_img, angle)
     
-    def grow(self):
-        self.should_grow = True
+    def grow(self, amount=1):
+        self.growth_pending += amount

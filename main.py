@@ -27,6 +27,17 @@ GRID_TOP_LEFT_Y = 101
 snake = Snake([(5, 10), (4, 10), (3, 10)])
 food = Food(25, 25)
 
+# score and font
+score = 0
+font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 60)
+
+# high score
+try:
+    with open("highscore.txt", "r") as f:
+        high_score = int(f.read())
+except:
+    high_score = 0
+
 # functions
 def grid_to_pixel(col, row):
     x = GRID_TOP_LEFT_X + col * CELL_SIZE
@@ -61,6 +72,12 @@ while running:
         print("Game Over: Collision detected")
         running = False
 
+    # Change high score when surpassed
+    if score > high_score:
+        high_score = score
+        with open("highscore.txt", "w") as f:
+            f.write(str(high_score))
+
     # Movement speed of snake
     current_time = time.time()
     if has_moved and current_time - last_move_time > move_delay:
@@ -69,13 +86,29 @@ while running:
 
     # Check for food collision
     if snake.get_positions()[0] == food.position:
-        snake.grow()  # Tell snake to grow next move
-        food.position = food.random_position()  # Respawn food
+        if food.is_bonus:
+            snake.grow(3)       # Grow by 3 for bonus food
+            score += 3
+        else:
+            snake.grow(1)       # Regular growth
+            score += 1
+        food.respawn()
+
 
     # fill the screen with the background
     screen.blit(background, (0, 0))
-    # fill the screen with the scoreboard
+    # fill the screen with the high score text
+    high_score_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 20)
+    high_score_text = high_score_font.render(f"High Score: {high_score}", True, (255, 255, 255))
+    high_score_rect = high_score_text.get_rect(center=(110, 110))  # Positioned above the grid
+    screen.blit(high_score_text, high_score_rect)
+    # fill the screen with the scoreboard and the score counter
     screen.blit(scoreboard, (275, 5))
+
+    # score text
+    score_text = font.render(f"{score}", True, (0, 0, 0))
+    text_rect = score_text.get_rect(center=(400, 60))  # Center on scoreboard
+    screen.blit(score_text, text_rect)
 
     # SNAKE ORIENTATION
     if snake.direction == 'UP':
@@ -106,7 +139,12 @@ while running:
             body_img = snake.get_body_image(prev_pos, segment, next_pos)
             screen.blit(body_img, grid_to_pixel(*segment))
 
-        screen.blit(food.image, grid_to_pixel(*food.position))
+        # Display food with animation
+        animated_img, size = food.get_animated_image()
+        x, y = grid_to_pixel(*food.position)
+        x += (CELL_SIZE - size) // 2
+        y += (CELL_SIZE - size) // 2
+        screen.blit(animated_img, (x, y))
 
     # flip() the display to put your work on screen
     pygame.display.flip()
