@@ -90,8 +90,6 @@ This Snake game implements a grid-based gameplay where the snake moves around co
 
 ## Future Improvements
 
-- Add a scoreboard to display current score and high scores.
-- Implement rare bonus food with special effects or extra points.
 - Add sound effects and background music.
 - Improve UI and add start/game over screens.
 - Add difficulty levels and speed increase mechanics.
