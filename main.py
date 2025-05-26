@@ -46,60 +46,11 @@ def grid_to_pixel(col, row):
     return (x, y)
 
 # Countdown upon resuming game
-def show_countdown(seconds):
-    countdown_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 100)
-
-    for i in range(seconds, 0, -1):
-        # Redraw game background and game state
-        screen.blit(background, (0, 0))
-
-        # Draw food
-        animated_img, size = food.get_animated_image()
-        x, y = grid_to_pixel(*food.position)
-        x += (CELL_SIZE - size) // 2
-        y += (CELL_SIZE - size) // 2
-        screen.blit(animated_img, (x, y))
-
-        # Draw snake
-        positions = snake.get_positions()
-        for j, segment in enumerate(positions):
-            if j == 0:
-                head_img = snake.get_head_image(snake.direction)
-                screen.blit(head_img, grid_to_pixel(*segment))
-            elif j == len(positions) - 1:
-                prev_pos = positions[j - 1]
-                tail_img = snake.get_tail_image(prev_pos, segment)
-                screen.blit(tail_img, grid_to_pixel(*segment))
-            else:
-                prev_pos = positions[j - 1]
-                next_pos = positions[j + 1]
-                body_img = snake.get_body_image(prev_pos, segment, next_pos)
-                screen.blit(body_img, grid_to_pixel(*segment))
-
-        # Draw scoreboard and score
-        screen.blit(scoreboard, (275, 5))
-        score_text = font.render(f"{score}", True, (0, 0, 0))
-        score_rect = score_text.get_rect(center=(400, 60))
-        screen.blit(score_text, score_rect)
-
-        high_score_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 20)
-        high_score_text = high_score_font.render(f"High Score: {high_score}", True, (255, 255, 255))
-        high_score_rect = high_score_text.get_rect(center=(110, 110))
-        screen.blit(high_score_text, high_score_rect)
-
-        # Draw black overlay
-        overlay = pygame.Surface((800, 800))
-        overlay.set_alpha(128)  # Semi-transparent
-        overlay.fill((0, 0, 0))
-        screen.blit(overlay, (0, 0))
-
-        # Draw countdown number
-        countdown_text = countdown_font.render(str(i), True, (255, 255, 255))
-        countdown_rect = countdown_text.get_rect(center=(400, 400))
-        screen.blit(countdown_text, countdown_rect)
-
-        pygame.display.flip()
-        pygame.time.delay(1000)  # Delay 1 second
+def start_countdown(seconds):
+    global in_countdown, countdown_start_time, countdown_seconds
+    in_countdown = True
+    countdown_start_time = time.time()
+    countdown_seconds = seconds
 
 # import background
 background = pygame.image.load("assets/playbackground_hard.png").convert()
@@ -113,16 +64,24 @@ last_move_time = time.time()
 move_delay = 0.15 # Speed of the snake
 has_moved = False # To ensure no movement until movement keys are pressed
 paused = False # For the pause feature
+in_countdown = False
+countdown_start_time = 0
+countdown_seconds = 3
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        # Block all key inputs during countdown
+        if in_countdown:
+            continue
+
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 if paused:
                     paused = False
-                    show_countdown(3)
+                    start_countdown(3)
                 else:
                     paused = True
             elif not paused:
@@ -130,7 +89,7 @@ while running:
                 if event.key in (pygame.K_w, pygame.K_s, pygame.K_d):
                     has_moved = True
     
-    if not paused:
+    if not paused and not in_countdown:
         # Check for collision against boundaries
         if snake.is_collision() or snake.is_self_collision():
             print("Game Over: Collision detected")
@@ -220,6 +179,25 @@ while running:
         pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
         pause_rect = pause_text.get_rect(center=(400, 400))
         screen.blit(pause_text, pause_rect)
+
+    if in_countdown:
+        elapsed = time.time() - countdown_start_time
+        remaining = countdown_seconds - int(elapsed)
+
+        if remaining > 0:
+            # Draw black overlay
+            overlay = pygame.Surface((800, 800))
+            overlay.set_alpha(128)
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (0, 0))
+
+            # Draw countdown number
+            countdown_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 100)
+            countdown_text = countdown_font.render(str(remaining), True, (255, 255, 255))
+            countdown_rect = countdown_text.get_rect(center=(400, 400))
+            screen.blit(countdown_text, countdown_rect)
+        else:
+            in_countdown = False  # Countdown done
 
     # flip() the display to put your work on screen
     pygame.display.flip()
