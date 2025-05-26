@@ -12,9 +12,21 @@ from food import Food
 
 # pygame setup
 pygame.init()
+pygame.mixer.init()
 screen = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
 running = True
+
+# SOUNDS
+move_sound = pygame.mixer.Sound("assets/sfx/move.wav")
+eat_food_sound = pygame.mixer.Sound("assets/sfx/food.wav")
+eat_food_sound.set_volume(0.5)
+eat_bonus_food_sound = pygame.mixer.Sound("assets/sfx/bonus-food.wav")
+eat_bonus_food_sound.set_volume(0.5)
+beat_highscore_sound = pygame.mixer.Sound("assets/sfx/beat-highscore.wav")
+beat_highscore_sound.set_volume(0.5)
+countdown_tick_sound = pygame.mixer.Sound("assets/sfx/countdown.wav")
+countdown_tick_sound.set_volume(0.5)
 
 # grid and cell sizes
 CELL_SIZE = 25
@@ -51,6 +63,7 @@ def start_countdown(seconds):
     in_countdown = True
     countdown_start_time = time.time()
     countdown_seconds = seconds
+    last_tick_played = None
 
 # import background
 background = pygame.image.load("assets/playbackground_hard.png").convert()
@@ -67,6 +80,9 @@ paused = False # For the pause feature
 in_countdown = False
 countdown_start_time = 0
 countdown_seconds = 3
+remaining = countdown_seconds  # for countdown ticking
+last_tick_played = None
+high_score_surpassed = False
 
 while running:
     for event in pygame.event.get():
@@ -86,8 +102,9 @@ while running:
                     paused = True
             elif not paused:
                 snake.set_direction(event.key)
-                if event.key in (pygame.K_w, pygame.K_s, pygame.K_d):
+                if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d):
                     has_moved = True
+                    move_sound.play()
     
     if not paused and not in_countdown:
         # Check for collision against boundaries
@@ -97,6 +114,9 @@ while running:
 
         # Change high score when surpassed
         if score > high_score:
+            if not high_score_surpassed:
+                beat_highscore_sound.play()
+                high_score_surpassed = True
             high_score = score
             with open("highscore.txt", "w") as f:
                 f.write(str(high_score))
@@ -112,9 +132,11 @@ while running:
             if food.is_bonus:
                 snake.grow(3)       # Grow by 3 for bonus food
                 score += 3
+                eat_bonus_food_sound.play()
             else:
                 snake.grow(1)       # Regular growth
                 score += 1
+                eat_food_sound.play()
             food.respawn()
 
     # fill the screen with the background
@@ -182,9 +204,16 @@ while running:
 
     if in_countdown:
         elapsed = time.time() - countdown_start_time
-        remaining = countdown_seconds - int(elapsed)
+        new_remaining = countdown_seconds - int(elapsed)
+        if new_remaining != remaining:
+            remaining = new_remaining
 
         if remaining > 0:
+            # For countdown sound
+            if remaining != last_tick_played:
+                countdown_tick_sound.play()
+                last_tick_played = remaining
+            
             # Draw black overlay
             overlay = pygame.Surface((800, 800))
             overlay.set_alpha(128)
