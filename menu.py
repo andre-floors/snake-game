@@ -132,29 +132,48 @@ class Menu:
             pygame.display.flip()
             self.clock.tick(60)
 
-    def fade_in(self, speed=10):
+    def fade_in(self, duration_ms=1000):
         fade_surface = pygame.Surface(self.screen.get_size())
         fade_surface.fill((0, 0, 0))
-        for alpha in range(255, -1, -speed):
+
+        steps = 50
+        delay = duration_ms / steps / 1000
+        target_volume = 0.5
+
+        for i in range(steps + 1):
+            alpha = 255 - int(i / steps * 255)
+            volume = i / steps * target_volume
             fade_surface.set_alpha(alpha)
-            self.screen.fill((0, 0, 0))  # Optional: clear screen before drawing
+            self.music_channel.set_volume(volume)
+
             self.update_background()
             self.draw_menu()
             self.screen.blit(fade_surface, (0, 0))
             pygame.display.flip()
             self.clock.tick(60)
+            time.sleep(delay)
 
-    # Inside Menu class
+    def fade_in_music(self, duration_ms=1000):
+        steps = 50
+        delay = duration_ms / steps / 1000  # convert to seconds
+        for i in range(steps + 1):
+            volume = i / steps * 0.5  # final volume is 0.5
+            self.music_channel.set_volume(volume)
+            time.sleep(delay)
+
     def fade_out_music(self, duration_ms=1000):
         self.music_channel.fadeout(duration_ms)
 
     def run(self):
+        self.music_channel.set_volume(0.0)  # Start silent
+        self.fade_in(duration_ms=1000)
+
         while self.running:
             action = self.handle_events()
             if action == 'play':
-                self.fade_out_music(1000)  # 1 second fade
+                self.fade_out_music(1000)
                 self.fade_out()
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Reset cursor before exit
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 return
 
             self.update_cursor()
