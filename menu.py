@@ -10,7 +10,7 @@ class Menu:
 
         # Load music
         self.menu_music = pygame.mixer.Sound("assets/sfx/menu-music.wav")
-        self.menu_music.set_volume(0.5)
+        self.menu_music.set_volume(0.0)
         self.music_channel = pygame.mixer.Channel(1)
         self.music_channel.play(self.menu_music, loops=-1)  # Loop forever
 
@@ -132,7 +132,7 @@ class Menu:
             pygame.display.flip()
             self.clock.tick(60)
 
-    def fade_in(self, duration_ms=1000):
+    def fade_in(self, duration_ms=1000): # for both menu and game
         fade_surface = pygame.Surface(self.screen.get_size())
         fade_surface.fill((0, 0, 0))
 
@@ -144,7 +144,7 @@ class Menu:
             alpha = 255 - int(i / steps * 255)
             volume = i / steps * target_volume
             fade_surface.set_alpha(alpha)
-            self.music_channel.set_volume(volume)
+            self.menu_music.set_volume(volume)
 
             self.update_background()
             self.draw_menu()
@@ -153,19 +153,10 @@ class Menu:
             self.clock.tick(60)
             time.sleep(delay)
 
-    def fade_in_music(self, duration_ms=1000):
-        steps = 50
-        delay = duration_ms / steps / 1000  # convert to seconds
-        for i in range(steps + 1):
-            volume = i / steps * 0.5  # final volume is 0.5
-            self.music_channel.set_volume(volume)
-            time.sleep(delay)
-
     def fade_out_music(self, duration_ms=1000):
         self.music_channel.fadeout(duration_ms)
 
     def run(self):
-        self.music_channel.set_volume(0.0)  # Start silent
         self.fade_in(duration_ms=1000)
 
         while self.running:
