@@ -7,6 +7,7 @@
 # IMPORT
 import pygame
 import time
+from menu import Menu
 from snake import Snake
 from food import Food
 
@@ -84,10 +85,28 @@ remaining = countdown_seconds  # for countdown ticking
 last_tick_played = None
 high_score_surpassed = False
 
+# Show menu before game
+menu = Menu(screen)
+menu.run()
+
+# Fade in the game screen after menu fades out
+fade_surface = pygame.Surface(screen.get_size())
+fade_surface.fill((0, 0, 0))
+fade_alpha = 255  # Start fully black
+fade_speed = 5    # Speed of fade (alpha decrease per frame)
+
+# Disable input during fade
+fade_start_time = time.time()
+disable_input_duration = 1
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        # Disable key input for first second of fade-in
+        if time.time() - fade_start_time < disable_input_duration:
+            continue
 
         # Block all key inputs during countdown
         if in_countdown:
@@ -102,7 +121,7 @@ while running:
                     paused = True
             elif not paused:
                 snake.set_direction(event.key)
-                if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d):
+                if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):
                     has_moved = True
                     move_sound.play()
     
@@ -227,6 +246,14 @@ while running:
             screen.blit(countdown_text, countdown_rect)
         else:
             in_countdown = False  # Countdown done
+
+    # Fade into the screen
+    if fade_alpha > 0:
+        fade_surface.set_alpha(fade_alpha)
+        screen.blit(fade_surface, (0, 0))
+        fade_alpha -= fade_speed
+        if fade_alpha < 0:
+            fade_alpha = 0
 
     # flip() the display to put your work on screen
     pygame.display.flip()

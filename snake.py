@@ -72,9 +72,13 @@ class Snake:
     def set_direction(self, key):
         key_map = {
             pygame.K_w: 'UP',
+            pygame.K_UP: 'UP',
             pygame.K_s: 'DOWN',
+            pygame.K_DOWN: 'DOWN',
             pygame.K_a: 'LEFT',
-            pygame.K_d: 'RIGHT'
+            pygame.K_LEFT: 'LEFT',
+            pygame.K_d: 'RIGHT',
+            pygame.K_RIGHT: 'RIGHT'
         }
 
         opposite = {
