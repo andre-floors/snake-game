@@ -17,21 +17,35 @@ class Menu:
         # Load assets
         self.bg_image = pygame.image.load("assets/menu_background.png").convert()
         self.logo = pygame.image.load("assets/snake_game_logo.png").convert_alpha()
-        self.button_play = pygame.image.load("assets/button-play.png").convert_alpha()
-        self.button_settings = pygame.image.load("assets/button-settings.png").convert_alpha()
-        self.button_customize = pygame.image.load("assets/button-customize.png").convert_alpha()
-        self.button_credits = pygame.image.load("assets/button-credits.png").convert_alpha()
-        self.button_exit = pygame.image.load("assets/button-exit.png").convert_alpha()
+
+        # Load buttons (both normal and hovered)
+        self.hovered_button = None
+        self.button_images = {
+            "play": (
+                pygame.transform.scale(pygame.image.load("assets/button-play.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/button-play-hover.png").convert_alpha(), (250, 100))
+            ),
+            "settings": (
+                pygame.transform.scale(pygame.image.load("assets/button-settings.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/button-settings-hover.png").convert_alpha(), (250, 100))
+            ),
+            "customize": (
+                pygame.transform.scale(pygame.image.load("assets/button-customize.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/button-customize-hover.png").convert_alpha(), (250, 100))
+            ),
+            "credits": (
+                pygame.transform.scale(pygame.image.load("assets/button-credits.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/button-credits-hover.png").convert_alpha(), (250, 100))
+            ),
+            "exit": (
+                pygame.transform.scale(pygame.image.load("assets/button-exit.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/button-exit-hover.png").convert_alpha(), (250, 100))
+            )
+        }
 
         # Resize assets
         self.logo = pygame.transform.scale(self.logo, (500, 250))
-        self.buttons = [
-            ("play", pygame.transform.scale(self.button_play, (250, 100))),
-            ("settings", pygame.transform.scale(self.button_settings, (250, 100))),
-            ("customize", pygame.transform.scale(self.button_customize, (250, 100))),
-            ("credits", pygame.transform.scale(self.button_credits, (250, 100))),
-            ("exit", pygame.transform.scale(self.button_exit, (250, 100)))
-        ]
+        self.buttons = [(name, self.button_images[name][0]) for name in self.button_images]
 
         # Background scrolling
         self.bg_offset_x = 0
@@ -77,21 +91,24 @@ class Menu:
         logo_rect = self.logo.get_rect(center=(self.screen.get_width() // 2, self.logo_base_y + bounce_offset))
         self.screen.blit(self.logo, logo_rect)
 
-        for (_, button_img), rect in zip(self.buttons, self.button_rects):
-            self.screen.blit(button_img, rect)
+        for (name, _), rect in zip(self.buttons, self.button_rects):
+            if name == self.hovered_button:
+                img = self.button_images[name][1]  # hover version
+            else:
+                img = self.button_images[name][0]  # normal version
+            self.screen.blit(img, rect)
 
     def update_cursor(self):
         mouse_pos = pygame.mouse.get_pos()
-        pointer = False
+        self.hovered_button = None  # Reset
+
         for (name, button_img), rect in zip(self.buttons, self.button_rects):
             if self.is_click_on_image(button_img, rect, mouse_pos):
-                pointer = True
-                break
+                self.hovered_button = name
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                return
 
-        if pointer:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def is_click_on_image(self, button_img, button_rect, mouse_pos):
         # Check if mouse is inside the button rect
