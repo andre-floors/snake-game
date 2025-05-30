@@ -42,7 +42,7 @@ food = Food(25, 25)
 
 # score and font
 score = 0
-font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 60)
+font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 80)
 
 # high score
 try:
@@ -149,11 +149,11 @@ while running:
         # Check for food collision
         if snake.get_positions()[0] == food.position:
             if food.is_bonus:
-                snake.grow(3)       # Grow by 3 for bonus food
+                snake.grow(3) # Grow by 3 for bonus food
                 score += 3
                 eat_bonus_food_sound.play()
             else:
-                snake.grow(1)       # Regular growth
+                snake.grow(1) # Regular growth
                 score += 1
                 eat_food_sound.play()
             food.respawn()
@@ -161,14 +161,15 @@ while running:
     # fill the screen with the background
     screen.blit(background, (0, 0))
     # fill the screen with the high score text
-    high_score_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 20)
-    high_score_text = high_score_font.render(f"High Score: {high_score}", True, (255, 255, 255))
-    high_score_rect = high_score_text.get_rect(center=(110, 110))  # Positioned above the grid
-    screen.blit(high_score_text, high_score_rect)
-    # fill the screen with the scoreboard and the score counter
-    screen.blit(scoreboard, (275, 5))
+    high_score_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 30)
+    high_score_icon = pygame.image.load("assets/high-score.png")
+    high_score_icon = pygame.transform.scale(high_score_icon, (30, 30))
+    high_score_text = high_score_font.render(f"{high_score}", True, (255, 255, 255))
+    screen.blit(high_score_icon, (30, 90))
+    screen.blit(high_score_text, (68, 89))
 
-    # score text
+    # Scoreboard (with Text)
+    screen.blit(scoreboard, (275, 5))
     score_text = font.render(f"{score}", True, (0, 0, 0))
     text_rect = score_text.get_rect(center=(400, 60))  # Center on scoreboard
     screen.blit(score_text, text_rect)
