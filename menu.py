@@ -149,7 +149,7 @@ class Menu:
             pygame.display.flip()
             self.clock.tick(60)
 
-    def fade_in(self, duration_ms=1000): # for both menu and game
+    def fade_in(self, duration_ms=1000):
         fade_surface = pygame.Surface(self.screen.get_size())
         fade_surface.fill((0, 0, 0))
 
@@ -174,6 +174,11 @@ class Menu:
         self.music_channel.fadeout(duration_ms)
 
     def run(self):
+        # Reset music properly before fade-in
+        self.music_channel.stop()
+        self.menu_music.set_volume(0.0)
+        self.music_channel.play(self.menu_music, loops=-1)
+        
         self.fade_in(duration_ms=1000)
 
         while self.running:

@@ -66,14 +66,42 @@ def start_countdown(seconds):
     countdown_seconds = seconds
     last_tick_played = None
 
-# import background
+# Import play background image
 background = pygame.image.load("assets/playbackground_hard.png").convert()
 
-# import scoreboard
+# Import scoreboard image
 scoreboard = pygame.image.load("assets/scoreboard.png").convert_alpha()
 scoreboard.set_colorkey((255, 255, 255))  # Make white transparent
 scoreboard = pygame.transform.scale(scoreboard, (250, 115))  # new width x height
 
+# Import pause button images
+pause_resume = pygame.image.load("assets/pause-resume.png")
+pause_resume_hover = pygame.image.load("assets/pause-resume-hover.png")
+pause_audio_on = pygame.image.load("assets/pause-audioon.png")
+pause_audio_on_hover = pygame.image.load("assets/pause-audioon-hover.png")
+pause_audio_off = pygame.image.load("assets/pause-audiooff.png")
+pause_audio_off_hover = pygame.image.load("assets/pause-audiooff-hover.png")
+pause_exit = pygame.image.load("assets/pause-exit.png")
+pause_exit_hover = pygame.image.load("assets/pause-exit-hover.png")
+
+# Resizing pause buttons
+new_width = int(500 * 0.7)   # 350
+new_height = int(100 * 0.7)  # 70
+button_size = (new_width, new_height)
+pause_buttons = {
+    "resume": [pygame.transform.scale(pause_resume, button_size), pygame.transform.scale(pause_resume_hover, button_size)],
+    "audio_on": [pygame.transform.scale(pause_audio_on, button_size), pygame.transform.scale(pause_audio_on_hover, button_size)],
+    "audio_off": [pygame.transform.scale(pause_audio_off, button_size), pygame.transform.scale(pause_audio_off_hover, button_size)],
+    "exit": [pygame.transform.scale(pause_exit, button_size), pygame.transform.scale(pause_exit_hover, button_size)]
+}
+
+pause_button_rects = {
+    "resume": pause_buttons["resume"][0].get_rect(center=(400, 300)),
+    "audio": pause_buttons["audio_on"][0].get_rect(center=(400, 370)),  # same rect for both on/off
+    "exit": pause_buttons["exit"][0].get_rect(center=(400, 440))
+}
+
+audio_muted = False
 last_move_time = time.time()
 move_delay = 0.15 # Speed of the snake
 has_moved = False # To ensure no movement until movement keys are pressed
@@ -124,7 +152,42 @@ while running:
                 if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):
                     has_moved = True
                     move_sound.play()
-    
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and paused:
+            if pause_button_rects["resume"].collidepoint(event.pos):
+                paused = False
+                start_countdown(3)
+            
+            elif pause_button_rects["audio"].collidepoint(event.pos):
+                audio_muted = not audio_muted
+                pygame.mixer.music.set_volume(0.0 if audio_muted else 0.5)
+                move_sound.set_volume(0.0 if audio_muted else 1.0)
+                eat_food_sound.set_volume(0.0 if audio_muted else 0.5)
+                eat_bonus_food_sound.set_volume(0.0 if audio_muted else 0.5)
+                beat_highscore_sound.set_volume(0.0 if audio_muted else 0.5)
+                countdown_tick_sound.set_volume(0.0 if audio_muted else 0.5)
+
+            elif pause_button_rects["exit"].collidepoint(event.pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                fade_out(screen)
+                menu.run()
+
+                # Reset game state after returning from menu
+                score = 0
+                snake = Snake([(5, 10), (4, 10), (3, 10)])
+                food = Food(25, 25)
+                paused = False
+                in_countdown = False
+                has_moved = False
+                high_score_surpassed = False
+                last_move_time = time.time()
+
+                # Fade in again after menu
+                fade_alpha = 255
+                fade_start_time = time.time()
+
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                
     if not paused and not in_countdown:
         # Check for collision against boundaries
         if snake.is_collision() or snake.is_self_collision():
@@ -217,10 +280,35 @@ while running:
         pause_overlay.fill((0, 0, 0))  # Black overlay
         screen.blit(pause_overlay, (0, 0))
 
-        pause_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 50)
-        pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
-        pause_rect = pause_text.get_rect(center=(400, 400))
-        screen.blit(pause_text, pause_rect)
+        # Mouse position
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Resume button
+        resume_hovered = pause_button_rects["resume"].collidepoint(mouse_pos)
+        screen.blit(pause_buttons["resume"][1 if resume_hovered else 0], pause_button_rects["resume"])
+
+        # Audio button
+        audio_key = "audio_off" if audio_muted else "audio_on"
+        audio_hovered = pause_button_rects["audio"].collidepoint(mouse_pos)
+        screen.blit(pause_buttons[audio_key][1 if audio_hovered else 0], pause_button_rects["audio"])
+
+        # Exit button
+        exit_hovered = pause_button_rects["exit"].collidepoint(mouse_pos)
+        screen.blit(pause_buttons["exit"][1 if exit_hovered else 0], pause_button_rects["exit"])
+
+        # Change cursor when hovering over buttons
+        mouse_pos = pygame.mouse.get_pos()
+        hovering = False
+
+        for key, rect in pause_button_rects.items():
+            if rect.collidepoint(mouse_pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                hovering = True
+                break
+
+        if not hovering:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
 
     if in_countdown:
         elapsed = time.time() - countdown_start_time
@@ -247,6 +335,16 @@ while running:
             screen.blit(countdown_text, countdown_rect)
         else:
             in_countdown = False  # Countdown done
+
+    # Fade out when returning to main menu
+    def fade_out(surface, speed=3):
+        fade_surface = pygame.Surface(surface.get_size())
+        fade_surface.fill((0, 0, 0))
+        for alpha in range(0, 256, speed):
+            fade_surface.set_alpha(alpha)
+            surface.blit(fade_surface, (0, 0))
+            pygame.display.flip()
+            pygame.time.delay(10)
 
     # Fade into the screen
     if fade_alpha > 0:
