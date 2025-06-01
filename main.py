@@ -38,7 +38,7 @@ GRID_TOP_LEFT_Y = 101
 
 # base coordinates for snake and food
 snake = Snake([(5, 10), (4, 10), (3, 10)])
-food = Food(25, 25, snake.get_positions())
+food = Food(30, 26, snake.get_positions())
 
 # score and font
 score = 0
@@ -104,12 +104,12 @@ pause_button_rects = {
 audio_muted = False
 last_move_time = time.time()
 move_delay = 0.15 # Speed of the snake
-has_moved = False # To ensure no movement until movement keys are pressed
-paused = False # For the pause feature
+has_moved = False
+paused = False
 in_countdown = False
 countdown_start_time = 0
 countdown_seconds = 3
-remaining = countdown_seconds  # for countdown ticking
+remaining = countdown_seconds
 last_tick_played = None
 high_score_surpassed = False
 
