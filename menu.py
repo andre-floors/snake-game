@@ -15,31 +15,31 @@ class Menu:
         self.music_channel.play(self.menu_music, loops=-1)  # Loop forever
 
         # Load assets
-        self.bg_image = pygame.image.load("assets/menu_background.png").convert()
-        self.logo = pygame.image.load("assets/snake_game_logo.png").convert_alpha()
+        self.bg_image = pygame.image.load("assets/images/menu/menu-background.png").convert()
+        self.logo = pygame.image.load("assets/images/menu/snake-game-logo.png").convert_alpha()
 
         # Load buttons (both normal and hovered)
         self.hovered_button = None
         self.button_images = {
             "play": (
-                pygame.transform.scale(pygame.image.load("assets/button-play.png").convert_alpha(), (250, 100)),
-                pygame.transform.scale(pygame.image.load("assets/button-play-hover.png").convert_alpha(), (250, 100))
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-play.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-play-hover.png").convert_alpha(), (250, 100))
             ),
             "settings": (
-                pygame.transform.scale(pygame.image.load("assets/button-settings.png").convert_alpha(), (250, 100)),
-                pygame.transform.scale(pygame.image.load("assets/button-settings-hover.png").convert_alpha(), (250, 100))
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-settings.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-settings-hover.png").convert_alpha(), (250, 100))
             ),
             "customize": (
-                pygame.transform.scale(pygame.image.load("assets/button-customize.png").convert_alpha(), (250, 100)),
-                pygame.transform.scale(pygame.image.load("assets/button-customize-hover.png").convert_alpha(), (250, 100))
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-customize.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-customize-hover.png").convert_alpha(), (250, 100))
             ),
             "credits": (
-                pygame.transform.scale(pygame.image.load("assets/button-credits.png").convert_alpha(), (250, 100)),
-                pygame.transform.scale(pygame.image.load("assets/button-credits-hover.png").convert_alpha(), (250, 100))
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-credits.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-credits-hover.png").convert_alpha(), (250, 100))
             ),
             "exit": (
-                pygame.transform.scale(pygame.image.load("assets/button-exit.png").convert_alpha(), (250, 100)),
-                pygame.transform.scale(pygame.image.load("assets/button-exit-hover.png").convert_alpha(), (250, 100))
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-exit.png").convert_alpha(), (250, 100)),
+                pygame.transform.scale(pygame.image.load("assets/images/menu/button-exit-hover.png").convert_alpha(), (250, 100))
             )
         }
 

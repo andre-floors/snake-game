@@ -67,22 +67,22 @@ def start_countdown(seconds):
     last_tick_played = None
 
 # Import play background image
-background = pygame.image.load("assets/playbackground_hard.png").convert()
+background = pygame.image.load("assets/images/game/play-background.png").convert()
 
 # Import scoreboard image
-scoreboard = pygame.image.load("assets/scoreboard.png").convert_alpha()
+scoreboard = pygame.image.load("assets/images/game/scoreboard.png").convert_alpha()
 scoreboard.set_colorkey((255, 255, 255))  # Make white transparent
 scoreboard = pygame.transform.scale(scoreboard, (250, 115))  # new width x height
 
 # Import pause button images
-pause_resume = pygame.image.load("assets/pause-resume.png")
-pause_resume_hover = pygame.image.load("assets/pause-resume-hover.png")
-pause_audio_on = pygame.image.load("assets/pause-audioon.png")
-pause_audio_on_hover = pygame.image.load("assets/pause-audioon-hover.png")
-pause_audio_off = pygame.image.load("assets/pause-audiooff.png")
-pause_audio_off_hover = pygame.image.load("assets/pause-audiooff-hover.png")
-pause_exit = pygame.image.load("assets/pause-exit.png")
-pause_exit_hover = pygame.image.load("assets/pause-exit-hover.png")
+pause_resume = pygame.image.load("assets/images/game/pause-resume.png")
+pause_resume_hover = pygame.image.load("assets/images/game/pause-resume-hover.png")
+pause_audio_on = pygame.image.load("assets/images/game/pause-audioon.png")
+pause_audio_on_hover = pygame.image.load("assets/images/game/pause-audioon-hover.png")
+pause_audio_off = pygame.image.load("assets/images/game/pause-audiooff.png")
+pause_audio_off_hover = pygame.image.load("assets/images/game/pause-audiooff-hover.png")
+pause_exit = pygame.image.load("assets/images/game/pause-exit.png")
+pause_exit_hover = pygame.image.load("assets/images/game/pause-exit-hover.png")
 
 # Resizing pause buttons
 new_width = int(500 * 0.7)   # 350
@@ -225,7 +225,7 @@ while running:
     screen.blit(background, (0, 0))
     # fill the screen with the high score text
     high_score_font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 30)
-    high_score_icon = pygame.image.load("assets/high-score.png")
+    high_score_icon = pygame.image.load("assets/images/game/high-score.png")
     high_score_icon = pygame.transform.scale(high_score_icon, (30, 30))
     high_score_text = high_score_font.render(f"{high_score}", True, (255, 255, 255))
     screen.blit(high_score_icon, (30, 90))

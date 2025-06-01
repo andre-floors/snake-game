@@ -6,11 +6,11 @@ class Food:
     def __init__(self, grid_width, grid_height, snake_positions):
         self.grid_width = grid_width
         self.grid_height = grid_height
-        self.image_normal = pygame.image.load("assets/food.png").convert_alpha()
+        self.image_normal = pygame.image.load("assets/images/game/food.png").convert_alpha()
         self.image_normal.set_colorkey((255, 255, 255))
         self.image_normal = pygame.transform.scale(self.image_normal, (25, 25))
 
-        self.image_bonus = pygame.image.load("assets/bonus_food.png").convert_alpha()
+        self.image_bonus = pygame.image.load("assets/images/game/bonus_food.png").convert_alpha()
         self.image_bonus.set_colorkey((255, 255, 255))
         self.image_bonus = pygame.transform.scale(self.image_bonus, (25, 25))
 

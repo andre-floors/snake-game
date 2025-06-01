@@ -18,15 +18,15 @@ class Snake:
         self.growth_pending = 0
 
         # Load and scale images
-        self.head_img = pygame.image.load("assets/snake_head1.png").convert()
+        self.head_img = pygame.image.load("assets/images/snake/snake-head.png").convert()
         self.head_img.set_colorkey((255, 255, 255))
         self.head_img = pygame.transform.scale(self.head_img, (25, 25))
 
-        self.body_img = pygame.image.load("assets/snake_body1.png").convert()
+        self.body_img = pygame.image.load("assets/images/snake/snake-body.png").convert()
         self.body_img.set_colorkey((255, 255, 255))
         self.body_img = pygame.transform.scale(self.body_img, (25, 25))
 
-        self.tail_img = pygame.image.load("assets/snake_tail1.png").convert()
+        self.tail_img = pygame.image.load("assets/images/snake/snake-tail.png").convert()
         self.tail_img.set_colorkey((255, 255, 255))
         self.tail_img = pygame.transform.scale(self.tail_img, (25, 25))
 
