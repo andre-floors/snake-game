@@ -3,7 +3,7 @@ import random
 import math
 
 class Food:
-    def __init__(self, grid_width, grid_height):
+    def __init__(self, grid_width, grid_height, snake_positions):
         self.grid_width = grid_width
         self.grid_height = grid_height
         self.image_normal = pygame.image.load("assets/food.png").convert_alpha()
@@ -16,16 +16,17 @@ class Food:
 
         self.is_bonus = False
         self.image = self.image_normal
-        self.position = self.random_position()
+        self.position = self.random_position(snake_positions)
 
-    def random_position(self):
-        col = random.randint(1, self.grid_width)
-        row = random.randint(1, self.grid_height)
-        return (col, row)
+    def random_position(self, snake_positions):
+        while True:
+            col = random.randint(1, self.grid_width)
+            row = random.randint(1, self.grid_height)
+            if (col, row) not in snake_positions:
+                return (col, row)
 
-    def respawn(self):
-        self.position = self.random_position()
-        # 20% chance to be a bonus food
+    def respawn(self, snake_positions):
+        self.position = self.random_position(snake_positions)
         self.is_bonus = random.random() < 0.2
         self.image = self.image_bonus if self.is_bonus else self.image_normal
 

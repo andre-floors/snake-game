@@ -38,7 +38,7 @@ GRID_TOP_LEFT_Y = 101
 
 # base coordinates for snake and food
 snake = Snake([(5, 10), (4, 10), (3, 10)])
-food = Food(25, 25)
+food = Food(25, 25, snake.get_positions())
 
 # score and font
 score = 0
@@ -219,7 +219,7 @@ while running:
                 snake.grow(1) # Regular growth
                 score += 1
                 eat_food_sound.play()
-            food.respawn()
+            food.respawn(snake.get_positions())
 
     # fill the screen with the background
     screen.blit(background, (0, 0))
