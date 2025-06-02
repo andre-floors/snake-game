@@ -10,6 +10,7 @@ import time
 from menu import Menu
 from snake import Snake
 from food import Food
+from settings import SPEED_VALUES, settings
 
 # pygame setup
 pygame.init()
@@ -103,7 +104,7 @@ pause_button_rects = {
 
 audio_muted = False
 last_move_time = time.time()
-move_delay = 0.15 # Speed of the snake
+move_delay = SPEED_VALUES[settings["game_speed"]]
 has_moved = False
 paused = False
 in_countdown = False
