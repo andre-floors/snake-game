@@ -10,7 +10,7 @@ import time
 from menu import Menu
 from snake import Snake
 from food import Food
-from settings import SPEED_VALUES, settings
+from settings import SPEED_VALUES, settings, load_settings
 
 # pygame setup
 pygame.init()
@@ -61,7 +61,7 @@ def grid_to_pixel(col, row):
 
 # Countdown upon resuming game
 def start_countdown(seconds):
-    global in_countdown, countdown_start_time, countdown_seconds
+    global in_countdown, countdown_start_time, countdown_seconds, last_tick_played
     in_countdown = True
     countdown_start_time = time.time()
     countdown_seconds = seconds
@@ -176,12 +176,13 @@ while running:
                 # Reset game state after returning from menu
                 score = 0
                 snake = Snake([(5, 10), (4, 10), (3, 10)])
-                food = Food(25, 25)
+                food = Food(30, 26, snake.get_positions())
                 paused = False
                 in_countdown = False
                 has_moved = False
                 high_score_surpassed = False
                 last_move_time = time.time()
+                move_delay = SPEED_VALUES[settings["game_speed"]]
 
                 # Fade in again after menu
                 fade_alpha = 255
@@ -267,12 +268,12 @@ while running:
             body_img = snake.get_body_image(prev_pos, segment, next_pos)
             screen.blit(body_img, grid_to_pixel(*segment))
 
-        # Display food with animation
-        animated_img, size = food.get_animated_image()
-        x, y = grid_to_pixel(*food.position)
-        x += (CELL_SIZE - size) // 2
-        y += (CELL_SIZE - size) // 2
-        screen.blit(animated_img, (x, y))
+    # Display food with animation
+    animated_img, size = food.get_animated_image()
+    x, y = grid_to_pixel(*food.position)
+    x += (CELL_SIZE - size) // 2
+    y += (CELL_SIZE - size) // 2
+    screen.blit(animated_img, (x, y))
 
     # Pause overlay
     if paused:

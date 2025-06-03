@@ -6,6 +6,9 @@ import settings
 
 class Menu:
     def __init__(self, screen):
+        # Reload settings from settings.json every time menu is created
+        settings.load_settings()
+
         self.screen = screen
         self.clock = pygame.time.Clock()
 
@@ -56,6 +59,7 @@ class Menu:
         self.buttons = [(name, self.button_images[name][0]) for name in self.button_images]
 
         # Import settings elements
+        self.hovered_settings_button = None
         self.settings_ui = pygame.image.load("assets/images/menu/settings_ui.png").convert_alpha()
 
         self.music_toggle_rect = pygame.Rect(0, 0, 0, 0)  # Placeholder to prevent attribute error
@@ -99,6 +103,8 @@ class Menu:
             )
         }
 
+        self.speed_rect = self.game_speeds["normal"][0].get_rect(topleft=(443, 376))
+
         self.reset_high_score = (
             pygame.image.load("assets/images/menu/reset-high-score.png").convert_alpha(),
             pygame.image.load("assets/images/menu/reset-high-score-hover.png").convert_alpha()
@@ -110,6 +116,8 @@ class Menu:
             pygame.image.load("assets/images/menu/back.png").convert_alpha(),
             pygame.image.load("assets/images/menu/back-hover.png").convert_alpha()
         )
+
+        self.back_rect = self.back_button[0].get_rect(topleft=(351, 589))
 
         # Background scrolling
         self.bg_offset_x = 0
@@ -179,26 +187,28 @@ class Menu:
         self.screen.blit(toggle_img, self.music_toggle_rect)
 
         # Draw volume controls and level
-        self.screen.blit(self.volume_controls["down"], self.volume_down_rect)
-        self.screen.blit(self.volume_controls["up"], self.volume_up_rect)
+        down_img = self.volume_controls["down"]
+        up_img = self.volume_controls["up"]
+        self.screen.blit(down_img, self.volume_down_rect)
+        self.screen.blit(up_img, self.volume_up_rect)
 
-        # Clamp volume to nearest 10
+        # Draw volume bar
         volume_key = int(round(self.volume / 10.0) * 10)
         volume_key = max(0, min(100, volume_key))
         self.screen.blit(self.volume_levels[volume_key], (398, 313))
 
-        # Draw game speed buttons (toggle)
-        speed_x, speed_y = 443, 376
-        current_speed = self.speed_states[self.current_speed_index]
-
-        # You can later add hover detection here
-        self.screen.blit(self.game_speeds[current_speed][0], (speed_x, speed_y))  # Use [1] for hover if needed
+        # Draw game speed button with hover
+        speed_key = self.speed_states[self.current_speed_index]
+        speed_img = self.game_speeds[speed_key][1] if self.hovered_settings_button == "speed" else self.game_speeds[speed_key][0]
+        self.screen.blit(speed_img, (443, 376))
 
         # Draw reset high score button
-        self.screen.blit(self.reset_high_score[0], (252, 479))
+        reset_img = self.reset_high_score[1] if self.hovered_settings_button == "reset" else self.reset_high_score[0]
+        self.screen.blit(reset_img, self.reset_rect)
 
         # Draw back button
-        self.screen.blit(self.back_button[0], (361, 589))
+        back_img = self.back_button[1] if self.hovered_settings_button == "back" else self.back_button[0]
+        self.screen.blit(back_img, self.back_rect)
 
     def toggle_music(self):
         self.music_on = not self.music_on
@@ -219,15 +229,38 @@ class Menu:
 
     def update_cursor(self):
         mouse_pos = pygame.mouse.get_pos()
-        self.hovered_button = None  # Reset
+        self.hovered_button = None
+        self.hovered_settings_button = None
 
-        for (name, button_img), rect in zip(self.buttons, self.button_rects):
-            if self.is_click_on_image(button_img, rect, mouse_pos):
-                self.hovered_button = name
+        if not self.in_settings:
+            for (name, button_img), rect in zip(self.buttons, self.button_rects):
+                if self.is_click_on_image(button_img, rect, mouse_pos):
+                    self.hovered_button = name
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    return
+        else:
+            # In settings menu
+            if self.is_click_on_image(self.volume_controls["toggle_on"], self.music_toggle_rect, mouse_pos) or \
+            self.is_click_on_image(self.volume_controls["toggle_off"], self.music_toggle_rect, mouse_pos):
+                self.hovered_settings_button = "music_toggle"
+            elif self.volume_down_rect.collidepoint(mouse_pos):
+                self.hovered_settings_button = "volume_down"
+            elif self.volume_up_rect.collidepoint(mouse_pos):
+                self.hovered_settings_button = "volume_up"
+            elif self.reset_rect.collidepoint(mouse_pos):
+                self.hovered_settings_button = "reset"
+            elif self.back_rect.collidepoint(mouse_pos):
+                self.hovered_settings_button = "back"
+            else:
+                # Speed toggle hover detection
+                speed_rect = self.game_speeds[self.speed_states[self.current_speed_index]][0].get_rect(topleft=(443, 376))
+                if speed_rect.collidepoint(mouse_pos):
+                    self.hovered_settings_button = "speed"
+
+            if self.hovered_settings_button:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                return
-
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def is_click_on_image(self, button_img, button_rect, mouse_pos):
         # Check if mouse is inside the button rect
@@ -249,6 +282,7 @@ class Menu:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Main Menu Events
                 if not self.in_settings:
                     if self.is_click_on_image(self.buttons[0][1], self.button_rects[0], event.pos):  # Play
                         return 'play'
@@ -257,14 +291,13 @@ class Menu:
                     elif self.is_click_on_image(self.buttons[-1][1], self.button_rects[-1], event.pos):  # Exit
                         pygame.quit()
                         sys.exit()
+                # Settings UI Events
                 if self.in_settings:
-                    speed_rect = self.game_speeds["normal"][0].get_rect(topleft=(443, 376))  # Position of game speed button
-                    if self.is_click_on_image(self.game_speeds[self.speed_states[self.current_speed_index]][0], speed_rect, event.pos):
+                    if self.speed_rect.collidepoint(event.pos):
                         self.current_speed_index = (self.current_speed_index + 1) % len(self.speed_states)
                         settings.settings["game_speed"] = self.speed_states[self.current_speed_index]
                         settings.save_settings()
-                    if self.is_click_on_image(self.volume_controls["toggle_on"], self.music_toggle_rect, event.pos) or \
-                    self.is_click_on_image(self.volume_controls["toggle_off"], self.music_toggle_rect, event.pos):
+                    if self.music_toggle_rect.collidepoint(event.pos):
                         self.toggle_music()
                     if self.volume_down_rect.collidepoint(event.pos):
                         self.change_volume(-10)
@@ -272,9 +305,15 @@ class Menu:
                         self.change_volume(+10)
                     if self.reset_rect.collidepoint(event.pos):
                         self.perform_reset_high_score()
+                    if self.back_rect.collidepoint(event.pos):
+                        self.in_settings = False
                 else:
                     # Handle clicks inside settings menu (e.g., back button)
                     pass  # You'll define behavior here later
+            # Exiting Settings UI
+            elif event.type == pygame.KEYDOWN:
+                if self.in_settings and event.key == pygame.K_ESCAPE:
+                    self.in_settings = False
 
         return None
 
