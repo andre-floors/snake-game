@@ -16,6 +16,7 @@ from food import Food
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((800, 800))
+pygame.display.set_caption("Snake Game")
 clock = pygame.time.Clock()
 running = True
 
@@ -111,7 +112,6 @@ settings.load_settings()
 
 # Volume Update
 volume = settings.settings["volume"] / 100.0
-menu.music_channel.set_volume(volume)
 move_sound.set_volume(volume)
 eat_food_sound.set_volume(volume)
 eat_bonus_food_sound.set_volume(volume)
@@ -163,6 +163,8 @@ while running:
                     start_countdown(3)
                 else:
                     paused = True
+
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             elif not paused:
                 snake.set_direction(event.key)
                 if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):

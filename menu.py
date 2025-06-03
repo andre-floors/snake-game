@@ -21,9 +21,9 @@ class Menu:
 
         # Load music
         self.menu_music = pygame.mixer.Sound("assets/sfx/menu-music.wav")
-        self.menu_music.set_volume(0.0)
+        # self.menu_music.set_volume(0.0)
         self.music_channel = pygame.mixer.Channel(1)
-        self.music_channel.play(self.menu_music, loops=-1)  # Loop forever
+        # self.music_channel.play(self.menu_music, loops=-1)  # Loop forever
 
         # Load assets
         self.bg_image = pygame.image.load("assets/images/menu/menu-background.png").convert()
@@ -238,6 +238,9 @@ class Menu:
                     self.hovered_button = name
                     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                     return
+            
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
         else:
             # In settings menu
             if self.is_click_on_image(self.volume_controls["toggle_on"], self.music_toggle_rect, mouse_pos) or \
@@ -340,10 +343,11 @@ class Menu:
 
         for i in range(steps + 1):
             alpha = 255 - int(i / steps * 255)
-            volume = i / steps * target_volume
             fade_surface.set_alpha(alpha)
-            self.menu_music.set_volume(volume)
-            self.music_channel.set_volume(volume)
+            
+            if settings.settings["music_on"]:
+                volume = i / steps * target_volume
+                self.music_channel.set_volume(volume)
 
             self.update_background()
             self.draw_menu()
