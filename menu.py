@@ -104,6 +104,8 @@ class Menu:
             pygame.image.load("assets/images/menu/reset-high-score-hover.png").convert_alpha()
         )
 
+        self.reset_rect = self.reset_high_score[0].get_rect(topleft=(252, 479))
+
         self.back_button = (
             pygame.image.load("assets/images/menu/back.png").convert_alpha(),
             pygame.image.load("assets/images/menu/back-hover.png").convert_alpha()
@@ -211,6 +213,10 @@ class Menu:
         if self.music_on:
             self.music_channel.set_volume(self.volume / 100.0)
 
+    def perform_reset_high_score(self):
+        with open("highscore.txt", "w") as file:
+            file.write("0")
+
     def update_cursor(self):
         mouse_pos = pygame.mouse.get_pos()
         self.hovered_button = None  # Reset
@@ -264,7 +270,8 @@ class Menu:
                         self.change_volume(-10)
                     if self.volume_up_rect.collidepoint(event.pos):
                         self.change_volume(+10)
-
+                    if self.reset_rect.collidepoint(event.pos):
+                        self.perform_reset_high_score()
                 else:
                     # Handle clicks inside settings menu (e.g., back button)
                     pass  # You'll define behavior here later
