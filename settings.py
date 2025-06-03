@@ -31,3 +31,5 @@ def load_settings():
 def save_settings():
     with open(SETTINGS_FILE, "w") as f:
         json.dump(settings, f)
+
+load_settings()

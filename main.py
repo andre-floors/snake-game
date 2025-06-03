@@ -7,10 +7,10 @@
 # IMPORT
 import pygame
 import time
+import settings
 from menu import Menu
 from snake import Snake
 from food import Food
-from settings import SPEED_VALUES, settings, load_settings
 
 # pygame setup
 pygame.init()
@@ -46,11 +46,12 @@ score = 0
 font = pygame.font.Font("assets/fonts/VCR_OSD_MONO_1.001.ttf", 80)
 
 # high score
-try:
-    with open("highscore.txt", "r") as f:
-        high_score = int(f.read())
-except:
-    high_score = 0
+def load_high_score():
+    try:
+        with open("highscore.txt", "r") as f:
+            return int(f.read())
+    except:
+        return 
 
 # FUNCTIONS
 # Computation for cell placement on grid
@@ -102,9 +103,27 @@ pause_button_rects = {
     "exit": pause_buttons["exit"][0].get_rect(center=(400, 440))
 }
 
+# Show menu before game
+menu = Menu(screen)
+menu.run()
+
+settings.load_settings()
+
+# Volume Update
+volume = settings.settings["volume"] / 100.0
+menu.music_channel.set_volume(volume)
+move_sound.set_volume(volume)
+eat_food_sound.set_volume(volume)
+eat_bonus_food_sound.set_volume(volume)
+beat_highscore_sound.set_volume(volume)
+countdown_tick_sound.set_volume(volume)
+# Game Speed Update
+move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
+# High Score Update
+high_score = load_high_score()
+
 audio_muted = False
 last_move_time = time.time()
-move_delay = SPEED_VALUES[settings["game_speed"]]
 has_moved = False
 paused = False
 in_countdown = False
@@ -113,10 +132,6 @@ countdown_seconds = 3
 remaining = countdown_seconds
 last_tick_played = None
 high_score_surpassed = False
-
-# Show menu before game
-menu = Menu(screen)
-menu.run()
 
 # Fade in the game screen after menu fades out
 fade_surface = pygame.Surface(screen.get_size())
@@ -161,7 +176,6 @@ while running:
             
             elif pause_button_rects["audio"].collidepoint(event.pos):
                 audio_muted = not audio_muted
-                pygame.mixer.music.set_volume(0.0 if audio_muted else 0.5)
                 move_sound.set_volume(0.0 if audio_muted else 1.0)
                 eat_food_sound.set_volume(0.0 if audio_muted else 0.5)
                 eat_bonus_food_sound.set_volume(0.0 if audio_muted else 0.5)
@@ -172,7 +186,7 @@ while running:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 fade_out(screen)
                 menu.run()
-
+                
                 # Reset game state after returning from menu
                 score = 0
                 snake = Snake([(5, 10), (4, 10), (3, 10)])
@@ -182,11 +196,25 @@ while running:
                 has_moved = False
                 high_score_surpassed = False
                 last_move_time = time.time()
-                move_delay = SPEED_VALUES[settings["game_speed"]]
 
                 # Fade in again after menu
                 fade_alpha = 255
                 fade_start_time = time.time()
+
+                # 🟢 Re-load settings and update move delay
+                settings.load_settings()
+                # Volume Update
+                volume = settings.settings["volume"] / 100.0
+                menu.music_channel.set_volume(volume)
+                move_sound.set_volume(volume)
+                eat_food_sound.set_volume(volume)
+                eat_bonus_food_sound.set_volume(volume)
+                beat_highscore_sound.set_volume(volume)
+                countdown_tick_sound.set_volume(volume)
+                # Game Speed Update
+                move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
+                # High Score Update
+                high_score = load_high_score()
 
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 

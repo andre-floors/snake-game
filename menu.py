@@ -306,6 +306,7 @@ class Menu:
                     if self.reset_rect.collidepoint(event.pos):
                         self.perform_reset_high_score()
                     if self.back_rect.collidepoint(event.pos):
+                        settings.save_settings()
                         self.in_settings = False
                 else:
                     # Handle clicks inside settings menu (e.g., back button)
@@ -313,6 +314,7 @@ class Menu:
             # Exiting Settings UI
             elif event.type == pygame.KEYDOWN:
                 if self.in_settings and event.key == pygame.K_ESCAPE:
+                    settings.save_settings()
                     self.in_settings = False
 
         return None
@@ -334,7 +336,7 @@ class Menu:
 
         steps = 50
         delay = duration_ms / steps / 1000
-        target_volume = 0.5
+        target_volume = settings.settings["volume"] / 100.0
 
         for i in range(steps + 1):
             alpha = 255 - int(i / steps * 255)
@@ -366,6 +368,7 @@ class Menu:
 
             # Clicking "Play"
             if action == 'play':
+                settings.load_settings()
                 self.fade_out_music(1000)
                 self.fade_out()
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
