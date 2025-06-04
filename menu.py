@@ -1,3 +1,5 @@
+# This file houses the entirety of the game's main menu
+
 import pygame
 import sys
 import math
@@ -15,6 +17,7 @@ class Menu:
         # Important flags for game
         self.in_settings = False  # Tracks whether the settings menu is opened
         self.in_customize = False
+        self.in_credits = False
         self.music_on = settings.settings["music_on"]
         self.volume = settings.settings["volume"]
         self.speed_states = list(settings.SPEED_VALUES.keys())
@@ -25,11 +28,13 @@ class Menu:
         self.settings_open_time = 0
         self.settings_click_lockout_duration = 0.1
 
+        # Prevent double clicking in credits
+        self.credits_open_time = 0
+        self.credits_click_lockout_duration = 0.1
+
         # Load music
         self.menu_music = pygame.mixer.Sound("assets/sfx/menu-music.wav")
-        # self.menu_music.set_volume(0.0)
         self.music_channel = pygame.mixer.Channel(1)
-        # self.music_channel.play(self.menu_music, loops=-1)  # Loop forever
 
         # Load assets
         self.bg_image = pygame.image.load("assets/images/menu/menu-background.png").convert()
@@ -163,7 +168,14 @@ class Menu:
             "black": (517, 299)
         }
 
-        # Background scrolling
+        # Import credits window
+        self.hovered_credits_button = None
+        self.credits_ui = pygame.image.load("assets/images/menu/credits-ui.png").convert_alpha()
+
+        # Import credits label
+        self.credit_label = pygame.image.load("assets/images/menu/credit-label.png").convert_alpha()
+
+        # Background scrolling (for moving background)
         self.bg_offset_x = 0
         self.bg_offset_y = 0
         self.bg_scroll_speed = 0.5
@@ -174,15 +186,15 @@ class Menu:
         # Calculate button positions
         screen_width, screen_height = self.screen.get_size()
 
-        # Position the logo higher (e.g., 100 px from top)
+        # Position the logo higher
         logo_y = 30
         self.logo_rect = self.logo.get_rect(center=(screen_width // 2, logo_y + self.logo.get_height() // 2))
 
-        # Position buttons starting further down (e.g., 300 px)
+        # Position buttons from top to bottom
         start_y = logo_y + self.logo.get_height()
-        gap = -10 # space between buttons
+        gap = -10 # Vertical space between buttons
 
-        # Logo movement
+        # Logo movement (using sine wave)
         self.start_time = time.time()
         self.logo_base_y = logo_y + self.logo.get_height() // 2  # for bounce baseline
 
@@ -201,10 +213,11 @@ class Menu:
                 self.screen.blit(self.bg_image, (x + self.bg_offset_x, y + self.bg_offset_y))
 
     def draw_menu(self):
-        # Bounce animation
+        # Bounce animation (using sine wave)
         elapsed = time.time() - self.start_time
-        bounce_offset = math.sin(elapsed * 2) * 5  # speed = 2, amplitude = 10px
+        bounce_offset = math.sin(elapsed * 2) * 5
 
+        # Render menu buttons
         logo_rect = self.logo.get_rect(center=(self.screen.get_width() // 2, self.logo_base_y + bounce_offset))
         self.screen.blit(self.logo, logo_rect)
 
@@ -215,73 +228,75 @@ class Menu:
                 img = self.button_images[name][0]  # normal version
             self.screen.blit(img, rect)
 
+        self.screen.blit(self.credit_label, (575, 783))
+
     def draw_settings(self):
-        # Darken background
         overlay = pygame.Surface(self.screen.get_size())
         overlay.set_alpha(180)
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
 
-        # Draw settings UI
+        # Render Settings UI and buttons
         self.screen.blit(self.settings_ui, (0, 0))
 
-        # Draw music toggle
         toggle_img = self.volume_controls["toggle_on"] if self.music_on else self.volume_controls["toggle_off"]
         self.music_toggle_rect = toggle_img.get_rect(topleft=(351, 256))
         self.screen.blit(toggle_img, self.music_toggle_rect)
 
-        # Draw volume controls and level
         down_img = self.volume_controls["down"]
         up_img = self.volume_controls["up"]
         self.screen.blit(down_img, self.volume_down_rect)
         self.screen.blit(up_img, self.volume_up_rect)
 
-        # Draw volume bar
         volume_key = int(round(self.volume / 10.0) * 10)
         volume_key = max(0, min(100, volume_key))
         self.screen.blit(self.volume_levels[volume_key], (398, 313))
 
-        # Draw game speed button with hover
         speed_key = self.speed_states[self.current_speed_index]
         speed_img = self.game_speeds[speed_key][1] if self.hovered_settings_button == "speed" else self.game_speeds[speed_key][0]
         self.screen.blit(speed_img, (443, 376))
 
-        # Draw reset high score button
         reset_img = self.reset_high_score[1] if self.hovered_settings_button == "reset" else self.reset_high_score[0]
         self.screen.blit(reset_img, self.reset_rect)
 
-        # Draw back button
         back_img = self.back_button[1] if self.hovered_settings_button == "back" else self.back_button[0]
         self.screen.blit(back_img, self.back_rect)
 
     def draw_customize(self):
-        # Darken background
         overlay = pygame.Surface(self.screen.get_size())
         overlay.set_alpha(180)
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
 
-        # Draw UI
+        # Render Customize UI and buttons
         self.screen.blit(self.customize_ui, (0, 0))
 
-        # Draw snake color selectors
         for color, img in self.snake_color_selectors.items():
             selector_pos = self.snake_color_selector_coords[color]
             self.screen.blit(img, selector_pos)
 
-            # Highlight selected color
             if self.selected_snake_color == color:
                 highlight_pos = (selector_pos[0], selector_pos[1] - 3)
                 selected_rect = self.snake_color_selected.get_rect(topleft=highlight_pos)
                 self.screen.blit(self.snake_color_selected, selected_rect)
 
-        # Draw demo snake (same position for all colors)
         demo_img = self.snake_color_demo.get(self.selected_snake_color)
         if demo_img:
             self.screen.blit(demo_img, (339, 360))
 
-        # Draw back button
         back_img = self.back_button[1] if self.hovered_customize_button == "back" else self.back_button[0]
+        self.screen.blit(back_img, self.back_rect)
+
+    def draw_credits(self):
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+        
+        # Render Credits UI and back button
+        self.screen.blit(self.credits_ui, (0, 0))
+
+        back_img = self.back_button[1] if self.hovered_credits_button == "back" else self.back_button[0]
         self.screen.blit(back_img, self.back_rect)
 
     def toggle_music(self):
@@ -316,8 +331,9 @@ class Menu:
         self.hovered_button = None
         self.hovered_settings_button = None
         self.hovered_customize_button = None
+        self.hovered_credits_button = None
 
-        if not self.in_settings and not self.in_customize:
+        if not self.in_settings and not self.in_customize and not self.in_credits:
             for (name, button_img), rect in zip(self.buttons, self.button_rects):
                 if self.is_click_on_image(button_img, rect, mouse_pos):
                     self.hovered_button = name
@@ -327,7 +343,6 @@ class Menu:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         elif self.in_settings:
-            # In settings menu
             if self.is_click_on_image(self.volume_controls["toggle_on"], self.music_toggle_rect, mouse_pos) or \
             self.is_click_on_image(self.volume_controls["toggle_off"], self.music_toggle_rect, mouse_pos):
                 self.hovered_settings_button = "music_toggle"
@@ -340,7 +355,6 @@ class Menu:
             elif self.back_rect.collidepoint(mouse_pos):
                 self.hovered_settings_button = "back"
             else:
-                # Speed toggle hover detection
                 speed_rect = self.game_speeds[self.speed_states[self.current_speed_index]][0].get_rect(topleft=(443, 376))
                 if speed_rect.collidepoint(mouse_pos):
                     self.hovered_settings_button = "speed"
@@ -368,16 +382,21 @@ class Menu:
                     self.hovered_customize_button = None
                     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
+        elif self.in_credits:
+            if self.back_rect.collidepoint(mouse_pos):
+                    self.hovered_credits_button = "back"
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                self.hovered_credits_button = None
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
     def is_click_on_image(self, button_img, button_rect, mouse_pos):
-        # Check if mouse is inside the button rect
         if button_rect.collidepoint(mouse_pos):
-            # Convert global mouse position to relative position inside the image
             rel_x = mouse_pos[0] - button_rect.left
             rel_y = mouse_pos[1] - button_rect.top
 
-            # Get pixel's alpha value at relative position
             pixel_alpha = button_img.get_at((rel_x, rel_y)).a
-            if pixel_alpha > 0:  # pixel is not transparent
+            if pixel_alpha > 0: 
                 return True
         return False
 
@@ -389,7 +408,7 @@ class Menu:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Main Menu Events
-                if not self.in_settings and not self.in_customize:
+                if not self.in_settings and not self.in_customize and not self.in_credits:
                     if self.is_click_on_image(self.buttons[0][1], self.button_rects[0], event.pos):  # Play
                         return 'play'
                     elif self.is_click_on_image(self.buttons[1][1], self.button_rects[1], event.pos):  # Settings
@@ -397,6 +416,9 @@ class Menu:
                         self.settings_open_time = time.time()
                     elif self.is_click_on_image(self.buttons[2][1], self.button_rects[2], event.pos):  # Customize
                         self.in_customize = True
+                    elif self.is_click_on_image(self.buttons[3][1], self.button_rects[3], event.pos):  # Credits
+                        self.in_credits = True
+                        self.credits_open_time = time.time()
                     elif self.is_click_on_image(self.buttons[-1][1], self.button_rects[-1], event.pos):  # Exit
                         pygame.quit()
                         sys.exit()
@@ -419,16 +441,18 @@ class Menu:
                     if self.back_rect.collidepoint(event.pos):
                         settings.save_settings()
                         self.in_settings = False
+                # Customize UI Events
                 if self.in_customize:
-                    if self.in_customize:
-                        self.change_color(event.pos)
-
+                    self.change_color(event.pos)
                     if self.back_rect.collidepoint(event.pos):
                         self.in_customize = False
-                else:
-                    # Handle clicks inside settings menu (e.g., back button)
-                    pass  # You'll define behavior here later
-            # Exiting Settings UI
+                # Credits UI Events
+                if self.in_credits:
+                    if time.time() - self.credits_open_time < self.credits_click_lockout_duration:
+                        continue
+                    if self.back_rect.collidepoint(event.pos):
+                        self.in_credits = False
+            # Exiting UI's
             elif event.type == pygame.KEYDOWN:
                 if self.in_settings and event.key == pygame.K_ESCAPE:
                     settings.save_settings()
@@ -436,6 +460,8 @@ class Menu:
                 if self.in_customize and event.key == pygame.K_ESCAPE:
                     settings.save_settings()
                     self.in_customize = False
+                if self.in_credits and event.key == pygame.K_ESCAPE:
+                    self.in_credits = False
 
         return None
 
@@ -504,6 +530,8 @@ class Menu:
                 self.draw_settings()
             elif self.in_customize:
                 self.draw_customize()
+            elif self.in_credits:
+                self.draw_credits()
             else:
                 self.draw_menu()
 

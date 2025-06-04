@@ -15,7 +15,7 @@ DEFAULT_SETTINGS = {
 SPEED_VALUES = {
     "slow": 0.20,
     "normal": 0.15,
-    "fast": 0.10
+    "fast": 0.07
 }
 
 # Holds the in-memory settings

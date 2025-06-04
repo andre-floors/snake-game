@@ -1,3 +1,5 @@
+# This file houses the code for the food spawning algorithm
+
 import pygame
 import random
 import math

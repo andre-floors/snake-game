@@ -1,3 +1,5 @@
+# This file houses the code for the snake's movement
+
 import pygame
 import settings
 
@@ -15,6 +17,7 @@ class Snake:
             current = current.next
 
         self.direction = 'RIGHT'
+        self.next_direction = self.direction
         self.should_grow = False
         self.growth_pending = 0
 
@@ -38,7 +41,9 @@ class Snake:
         return positions
 
     def move(self, direction):
+        self.direction = self.next_direction  # Prevents rapid change of direction
         head_x, head_y = self.head.position
+
         if direction == 'UP':
             new_head = (head_x, head_y - 1)
         elif direction == 'DOWN':
@@ -52,7 +57,7 @@ class Snake:
         new_node.next = self.head
         self.head = new_node
 
-        # Only remove tail if we're not growing
+        # Only remove tail if not growing
         if self.growth_pending > 0:
             self.growth_pending -= 1
         else:
@@ -60,6 +65,17 @@ class Snake:
             while current.next and current.next.next:
                 current = current.next
             current.next = None
+
+    def try_change_direction(self, new_direction):
+        opposite = {
+            'UP': 'DOWN',
+            'DOWN': 'UP',
+            'LEFT': 'RIGHT',
+            'RIGHT': 'LEFT'
+        }
+
+        if new_direction != self.direction and new_direction != opposite[self.direction]:
+            self.next_direction = new_direction
 
     def set_direction(self, key):
         key_map = {
@@ -73,16 +89,9 @@ class Snake:
             pygame.K_RIGHT: 'RIGHT'
         }
 
-        opposite = {
-            'UP': 'DOWN',
-            'DOWN': 'UP',
-            'LEFT': 'RIGHT',
-            'RIGHT': 'LEFT'
-        }
-
         new_direction = key_map.get(key)
-        if new_direction and new_direction != opposite.get(self.direction):
-            self.direction = new_direction
+        if new_direction:
+            self.try_change_direction(new_direction)
 
     def direction_between(self, p1, p2):
         x1, y1 = p1
@@ -101,8 +110,7 @@ class Snake:
 
     def is_self_collision(self):
         head_pos = self.head.position
-        current = self.head.next  # skip the head
-
+        current = self.head.next
         while current:
             if current.position == head_pos:
                 return True
@@ -114,7 +122,6 @@ class Snake:
         dir_from_prev = self.direction_between(prev_pos, current_pos)
         dir_to_next = self.direction_between(current_pos, next_pos)
 
-        # Straight line
         if dir_from_prev == dir_to_next:
             if dir_from_prev == 'UP':
                 return pygame.transform.rotate(self.body_img, 90)
@@ -123,9 +130,8 @@ class Snake:
             elif dir_from_prev == 'LEFT':
                 return pygame.transform.rotate(self.body_img, 180)
             else:
-                return self.body_img  # RIGHT, no rotation
+                return self.body_img
 
-        # Corner – no rotation needed since the image is pre-aligned
         return self.body_img
 
     def get_tail_image(self, prev_pos, tail_pos):
