@@ -1,4 +1,5 @@
 import pygame
+import settings
 
 class Node:
     def __init__(self, position):
@@ -17,25 +18,16 @@ class Snake:
         self.should_grow = False
         self.growth_pending = 0
 
-        # Load and scale images
-        self.head_img = pygame.image.load("assets/images/snake/snake-head.png").convert()
-        self.head_img.set_colorkey((255, 255, 255))
-        self.head_img = pygame.transform.scale(self.head_img, (25, 25))
+        snake_color = settings.settings["snake_color"]
 
-        self.body_img = pygame.image.load("assets/images/snake/snake-body.png").convert()
-        self.body_img.set_colorkey((255, 255, 255))
-        self.body_img = pygame.transform.scale(self.body_img, (25, 25))
+        # Dynamically load snake's images based on selected color
+        def load_snake_image(part):
+            img = pygame.image.load(f"assets/images/snake/snake-{part}-{snake_color}.png").convert_alpha()
+            return pygame.transform.scale(img, (25, 25))
 
-        self.tail_img = pygame.image.load("assets/images/snake/snake-tail.png").convert()
-        self.tail_img.set_colorkey((255, 255, 255))
-        self.tail_img = pygame.transform.scale(self.tail_img, (25, 25))
-
-        # Linked list setup
-        self.head = Node(init_positions[0])
-        current = self.head
-        for pos in init_positions[1:]:
-            current.next = Node(pos)
-            current = current.next
+        self.head_img = load_snake_image("head")
+        self.body_img = load_snake_image("body")
+        self.tail_img = load_snake_image("tail")
 
     def get_positions(self):
         positions = []

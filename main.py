@@ -2,8 +2,6 @@
 # This is an activity for Data Structures & Algorithms of BSIT 2-2. Developed by Andre Ryan F. Flores.
 # This game uses the pygame library, which is used to make video games using the Python language.
 
-# CODE BELOW IS THE BASE STARTING CODE FROM PYGAME, TO TEST THE GAME.
-
 # IMPORT
 import pygame
 import time
@@ -30,6 +28,8 @@ beat_highscore_sound = pygame.mixer.Sound("assets/sfx/beat-highscore.wav")
 beat_highscore_sound.set_volume(0.5)
 countdown_tick_sound = pygame.mixer.Sound("assets/sfx/countdown.wav")
 countdown_tick_sound.set_volume(0.5)
+game_over_sound = pygame.mixer.Sound("assets/sfx/game-over.wav")
+game_over_sound.set_volume(0.5)
 
 # grid and cell sizes
 CELL_SIZE = 25
@@ -87,6 +87,12 @@ pause_audio_off_hover = pygame.image.load("assets/images/game/pause-audiooff-hov
 pause_exit = pygame.image.load("assets/images/game/pause-exit.png")
 pause_exit_hover = pygame.image.load("assets/images/game/pause-exit-hover.png")
 
+# Import game over images
+gameover_retry = pygame.image.load("assets/images/game/gameover-retry.png")
+gameover_retry_hover = pygame.image.load("assets/images/game/gameover-retry-hover.png")
+gameover_exit = pygame.image.load("assets/images/game/gameover-exit.png")
+gameover_exit_hover = pygame.image.load("assets/images/game/gameover-exit-hover.png")
+
 # Resizing pause buttons
 new_width = int(500 * 0.7)   # 350
 new_height = int(100 * 0.7)  # 70
@@ -117,6 +123,7 @@ eat_food_sound.set_volume(volume)
 eat_bonus_food_sound.set_volume(volume)
 beat_highscore_sound.set_volume(volume)
 countdown_tick_sound.set_volume(volume)
+game_over_sound.set_volume(volume)
 # Game Speed Update
 move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
 # High Score Update
@@ -132,6 +139,26 @@ countdown_seconds = 3
 remaining = countdown_seconds
 last_tick_played = None
 high_score_surpassed = False
+game_over = False
+game_over_alpha = 0
+game_over_fade_speed = 5  # Increase alpha by 5 per frame, adjust for speed
+
+gameover_buttons = {
+    "retry": [
+        pygame.transform.scale(gameover_retry, button_size),
+        pygame.transform.scale(gameover_retry_hover, button_size)
+    ],
+    "exit": [
+        pygame.transform.scale(gameover_exit, button_size),
+        pygame.transform.scale(gameover_exit_hover, button_size)
+    ]
+}
+
+# Create rects for those buttons at your desired coordinates (example centers)
+gameover_button_rects = {
+    "retry": gameover_buttons["retry"][0].get_rect(center=(400, 350)),
+    "exit": gameover_buttons["exit"][0].get_rect(center=(400, 420))
+}
 
 # Fade in the game screen after menu fades out
 fade_surface = pygame.Surface(screen.get_size())
@@ -157,7 +184,7 @@ while running:
             continue
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_ESCAPE and not game_over:
                 if paused:
                     paused = False
                     start_countdown(3)
@@ -165,7 +192,7 @@ while running:
                     paused = True
 
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-            elif not paused:
+            elif not paused and not game_over:
                 snake.set_direction(event.key)
                 if event.key in (pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):
                     has_moved = True
@@ -183,6 +210,7 @@ while running:
                 eat_bonus_food_sound.set_volume(0.0 if audio_muted else 0.5)
                 beat_highscore_sound.set_volume(0.0 if audio_muted else 0.5)
                 countdown_tick_sound.set_volume(0.0 if audio_muted else 0.5)
+                game_over_sound.set_volume(0.0 if audio_muted else 0.5)
 
             elif pause_button_rects["exit"].collidepoint(event.pos):
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -213,18 +241,77 @@ while running:
                 eat_bonus_food_sound.set_volume(volume)
                 beat_highscore_sound.set_volume(volume)
                 countdown_tick_sound.set_volume(volume)
+                game_over_sound.set_volume(volume)
                 # Game Speed Update
                 move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
                 # High Score Update
                 high_score = load_high_score()
 
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and game_over:
+            if gameover_button_rects["retry"].collidepoint(event.pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                fade_out(screen)
+
+                # Reset game state to restart
+                score = 0
+                snake = Snake([(5, 10), (4, 10), (3, 10)])
+                food = Food(30, 26, snake.get_positions())
+                game_over = False
+                game_over_alpha = 0
+                paused = False
+                in_countdown = False
+                has_moved = False
+                last_move_time = time.time()
                 
-    if not paused and not in_countdown:
+                # Fade in again
+                fade_alpha = 255
+                fade_start_time = time.time()
+
+            elif gameover_button_rects["exit"].collidepoint(event.pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                fade_out(screen)
+                menu.run()
+                
+                # Reset game state after returning from menu
+                score = 0
+                snake = Snake([(5, 10), (4, 10), (3, 10)])
+                food = Food(30, 26, snake.get_positions())
+                game_over = False
+                game_over_alpha = 0
+                paused = False
+                in_countdown = False
+                has_moved = False
+                high_score_surpassed = False
+                last_move_time = time.time()
+
+                # Fade in again after menu
+                fade_alpha = 255
+                fade_start_time = time.time()
+
+                # 🟢 Re-load settings and update move delay
+                settings.load_settings()
+                # Volume Update
+                volume = settings.settings["volume"] / 100.0
+                menu.music_channel.set_volume(volume)
+                move_sound.set_volume(volume)
+                eat_food_sound.set_volume(volume)
+                eat_bonus_food_sound.set_volume(volume)
+                beat_highscore_sound.set_volume(volume)
+                countdown_tick_sound.set_volume(volume)
+                game_over_sound.set_volume(volume)
+                # Game Speed Update
+                move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
+                # High Score Update
+                high_score = load_high_score()
+                
+    if not paused and not in_countdown and not game_over:
         # Check for collision against boundaries
         if snake.is_collision() or snake.is_self_collision():
             print("Game Over: Collision detected")
-            running = False
+            game_over_sound.play()
+            game_over = True
 
         # Change high score when surpassed
         if score > high_score:
@@ -244,11 +331,11 @@ while running:
         # Check for food collision
         if snake.get_positions()[0] == food.position:
             if food.is_bonus:
-                snake.grow(3) # Grow by 3 for bonus food
+                snake.grow(3) # Grow by 3 if it eats bonus food
                 score += 3
                 eat_bonus_food_sound.play()
             else:
-                snake.grow(1) # Regular growth
+                snake.grow(1)
                 score += 1
                 eat_food_sound.play()
             food.respawn(snake.get_positions())
@@ -341,7 +428,6 @@ while running:
         if not hovering:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-
     if in_countdown:
         elapsed = time.time() - countdown_start_time
         new_remaining = countdown_seconds - int(elapsed)
@@ -367,6 +453,41 @@ while running:
             screen.blit(countdown_text, countdown_rect)
         else:
             in_countdown = False  # Countdown done
+
+    if game_over:
+        if game_over_alpha < 150:  # max alpha (0-255)
+            game_over_alpha += game_over_fade_speed
+            if game_over_alpha > 150:
+                game_over_alpha = 150
+
+        # Create red overlay surface
+        red_overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        red_overlay.fill((255, 0, 0, game_over_alpha))  # red with alpha
+        screen.blit(red_overlay, (0, 0))
+
+        # Draw buttons with hover effect
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Retry button hover
+        retry_hovered = gameover_button_rects["retry"].collidepoint(mouse_pos)
+        screen.blit(gameover_buttons["retry"][1 if retry_hovered else 0], gameover_button_rects["retry"])
+
+        # Exit button hover
+        exit_hovered = gameover_button_rects["exit"].collidepoint(mouse_pos)
+        screen.blit(gameover_buttons["exit"][1 if exit_hovered else 0], gameover_button_rects["exit"])
+
+        # Change cursor when hovering over buttons
+        mouse_pos = pygame.mouse.get_pos()
+        hovering = False
+
+        for key, rect in gameover_button_rects.items():
+            if rect.collidepoint(mouse_pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                hovering = True
+                break
+
+        if not hovering:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     # Fade out when returning to main menu
     def fade_out(surface, speed=3):

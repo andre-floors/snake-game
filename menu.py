@@ -14,10 +14,16 @@ class Menu:
 
         # Important flags for game
         self.in_settings = False  # Tracks whether the settings menu is opened
+        self.in_customize = False
         self.music_on = settings.settings["music_on"]
         self.volume = settings.settings["volume"]
         self.speed_states = list(settings.SPEED_VALUES.keys())
         self.current_speed_index = self.speed_states.index(settings.settings["game_speed"])
+        self.selected_snake_color = settings.settings["snake_color"]
+
+        # Prevent double clicking in settings
+        self.settings_open_time = 0
+        self.settings_click_lockout_duration = 0.1
 
         # Load music
         self.menu_music = pygame.mixer.Sound("assets/sfx/menu-music.wav")
@@ -60,7 +66,7 @@ class Menu:
 
         # Import settings elements
         self.hovered_settings_button = None
-        self.settings_ui = pygame.image.load("assets/images/menu/settings_ui.png").convert_alpha()
+        self.settings_ui = pygame.image.load("assets/images/menu/settings-ui.png").convert_alpha()
 
         self.music_toggle_rect = pygame.Rect(0, 0, 0, 0)  # Placeholder to prevent attribute error
 
@@ -118,6 +124,44 @@ class Menu:
         )
 
         self.back_rect = self.back_button[0].get_rect(topleft=(351, 589))
+
+        # Import customize elements
+        self.customize_ui = pygame.image.load("assets/images/menu/customize-ui.png").convert_alpha()
+
+        self.snake_color_selectors = {
+            "white": pygame.image.load("assets/images/menu/snake-color-white.png").convert_alpha(),
+            "red": pygame.image.load("assets/images/menu/snake-color-red.png").convert_alpha(),
+            "orange": pygame.image.load("assets/images/menu/snake-color-orange.png").convert_alpha(),
+            "yellow": pygame.image.load("assets/images/menu/snake-color-yellow.png").convert_alpha(),
+            "green": pygame.image.load("assets/images/menu/snake-color-green.png").convert_alpha(),
+            "blue": pygame.image.load("assets/images/menu/snake-color-blue.png").convert_alpha(),
+            "violet": pygame.image.load("assets/images/menu/snake-color-violet.png").convert_alpha(),
+            "black": pygame.image.load("assets/images/menu/snake-color-black.png").convert_alpha(),
+        }
+
+        self.snake_color_demo = {
+            "white": pygame.image.load("assets/images/menu/demo-snake-white.png").convert_alpha(),
+            "red": pygame.image.load("assets/images/menu/demo-snake-red.png").convert_alpha(),
+            "orange": pygame.image.load("assets/images/menu/demo-snake-orange.png").convert_alpha(),
+            "yellow": pygame.image.load("assets/images/menu/demo-snake-yellow.png").convert_alpha(),
+            "green": pygame.image.load("assets/images/menu/demo-snake-green.png").convert_alpha(),
+            "blue": pygame.image.load("assets/images/menu/demo-snake-blue.png").convert_alpha(),
+            "violet": pygame.image.load("assets/images/menu/demo-snake-violet.png").convert_alpha(),
+            "black": pygame.image.load("assets/images/menu/demo-snake-black.png").convert_alpha(),
+        }
+
+        self.snake_color_selected = pygame.image.load("assets/images/menu/snake-color-selected.png")
+
+        self.snake_color_selector_coords = {
+            "white": (245, 299),
+            "red": (284, 299),
+            "orange": (323, 299),
+            "yellow": (362, 299),
+            "green": (400, 299),
+            "blue": (439, 299),
+            "violet": (478, 299),
+            "black": (517, 299)
+        }
 
         # Background scrolling
         self.bg_offset_x = 0
@@ -210,6 +254,36 @@ class Menu:
         back_img = self.back_button[1] if self.hovered_settings_button == "back" else self.back_button[0]
         self.screen.blit(back_img, self.back_rect)
 
+    def draw_customize(self):
+        # Darken background
+        overlay = pygame.Surface(self.screen.get_size())
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        # Draw UI
+        self.screen.blit(self.customize_ui, (0, 0))
+
+        # Draw snake color selectors
+        for color, img in self.snake_color_selectors.items():
+            selector_pos = self.snake_color_selector_coords[color]
+            self.screen.blit(img, selector_pos)
+
+            # Highlight selected color
+            if self.selected_snake_color == color:
+                highlight_pos = (selector_pos[0], selector_pos[1] - 3)
+                selected_rect = self.snake_color_selected.get_rect(topleft=highlight_pos)
+                self.screen.blit(self.snake_color_selected, selected_rect)
+
+        # Draw demo snake (same position for all colors)
+        demo_img = self.snake_color_demo.get(self.selected_snake_color)
+        if demo_img:
+            self.screen.blit(demo_img, (339, 360))
+
+        # Draw back button
+        back_img = self.back_button[1] if self.hovered_customize_button == "back" else self.back_button[0]
+        self.screen.blit(back_img, self.back_rect)
+
     def toggle_music(self):
         self.music_on = not self.music_on
         settings.settings["music_on"] = self.music_on
@@ -227,12 +301,23 @@ class Menu:
         with open("highscore.txt", "w") as file:
             file.write("0")
 
+    def change_color(self, mouse_pos):
+        for color, img in self.snake_color_selectors.items():
+            selector_pos = self.snake_color_selector_coords[color]
+            selector_rect = img.get_rect(topleft=selector_pos)
+            if selector_rect.collidepoint(mouse_pos):
+                self.selected_snake_color = color
+                settings.settings["snake_color"] = color
+                settings.save_settings()
+                break
+
     def update_cursor(self):
         mouse_pos = pygame.mouse.get_pos()
         self.hovered_button = None
         self.hovered_settings_button = None
+        self.hovered_customize_button = None
 
-        if not self.in_settings:
+        if not self.in_settings and not self.in_customize:
             for (name, button_img), rect in zip(self.buttons, self.button_rects):
                 if self.is_click_on_image(button_img, rect, mouse_pos):
                     self.hovered_button = name
@@ -241,7 +326,7 @@ class Menu:
             
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        else:
+        elif self.in_settings:
             # In settings menu
             if self.is_click_on_image(self.volume_controls["toggle_on"], self.music_toggle_rect, mouse_pos) or \
             self.is_click_on_image(self.volume_controls["toggle_off"], self.music_toggle_rect, mouse_pos):
@@ -264,6 +349,24 @@ class Menu:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        
+        elif self.in_customize:
+            hovered_on_selector = False
+            for color, img in self.snake_color_selectors.items():
+                selector_pos = self.snake_color_selector_coords[color]
+                selector_rect = img.get_rect(topleft=selector_pos)
+                if selector_rect.collidepoint(mouse_pos):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    hovered_on_selector = True
+                    break
+
+            if not hovered_on_selector:
+                if self.back_rect.collidepoint(mouse_pos):
+                    self.hovered_customize_button = "back"
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                else:
+                    self.hovered_customize_button = None
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def is_click_on_image(self, button_img, button_rect, mouse_pos):
         # Check if mouse is inside the button rect
@@ -286,16 +389,21 @@ class Menu:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Main Menu Events
-                if not self.in_settings:
+                if not self.in_settings and not self.in_customize:
                     if self.is_click_on_image(self.buttons[0][1], self.button_rects[0], event.pos):  # Play
                         return 'play'
                     elif self.is_click_on_image(self.buttons[1][1], self.button_rects[1], event.pos):  # Settings
                         self.in_settings = True
+                        self.settings_open_time = time.time()
+                    elif self.is_click_on_image(self.buttons[2][1], self.button_rects[2], event.pos):  # Customize
+                        self.in_customize = True
                     elif self.is_click_on_image(self.buttons[-1][1], self.button_rects[-1], event.pos):  # Exit
                         pygame.quit()
                         sys.exit()
                 # Settings UI Events
                 if self.in_settings:
+                    if time.time() - self.settings_open_time < self.settings_click_lockout_duration:
+                        continue
                     if self.speed_rect.collidepoint(event.pos):
                         self.current_speed_index = (self.current_speed_index + 1) % len(self.speed_states)
                         settings.settings["game_speed"] = self.speed_states[self.current_speed_index]
@@ -311,6 +419,12 @@ class Menu:
                     if self.back_rect.collidepoint(event.pos):
                         settings.save_settings()
                         self.in_settings = False
+                if self.in_customize:
+                    if self.in_customize:
+                        self.change_color(event.pos)
+
+                    if self.back_rect.collidepoint(event.pos):
+                        self.in_customize = False
                 else:
                     # Handle clicks inside settings menu (e.g., back button)
                     pass  # You'll define behavior here later
@@ -319,6 +433,9 @@ class Menu:
                 if self.in_settings and event.key == pygame.K_ESCAPE:
                     settings.save_settings()
                     self.in_settings = False
+                if self.in_customize and event.key == pygame.K_ESCAPE:
+                    settings.save_settings()
+                    self.in_customize = False
 
         return None
 
@@ -376,14 +493,17 @@ class Menu:
                 self.fade_out_music(1000)
                 self.fade_out()
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                self.hovered_button = None
                 return
 
             self.update_cursor()
             self.update_background()
 
-            # Clicking "Settings"
+            # Displaying UI's
             if self.in_settings:
                 self.draw_settings()
+            elif self.in_customize:
+                self.draw_customize()
             else:
                 self.draw_menu()
 

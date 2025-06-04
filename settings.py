@@ -8,13 +8,14 @@ SETTINGS_FILE = "settings.json"
 DEFAULT_SETTINGS = {
     "music_on": True,
     "volume": 50,
-    "game_speed": "normal"
+    "game_speed": "normal",
+    "snake_color": "blue"
 }
 
 SPEED_VALUES = {
     "slow": 0.20,
     "normal": 0.15,
-    "fast": 0.07
+    "fast": 0.10
 }
 
 # Holds the in-memory settings
