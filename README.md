@@ -1,13 +1,12 @@
 # Snake Game
 
 A classic Snake game developed in Python using the [Pygame](https://www.pygame.org/) library.  
-This project is part of a Data Structures & Algorithms activity for BSIT 2-2, created by Andre Ryan F. Flores.
+This project is created as a Data Structures & Algorithms activity in Cavite State University, created by Andre Ryan F. Flores.
 
 ---
 
 ## Table of Contents
 - [About](#about)
-- [Features](#features)
 - [Installation](#installation)
 - [How to Play](#how-to-play)
 - [Project Structure](#project-structure)
@@ -24,18 +23,7 @@ This Snake game implements a grid-based gameplay where the snake moves around co
 - Collision detection with the boundaries and the snake itself.
 - Food spawning at random positions inside the grid.
 - Snake growth mechanics upon eating food.
-- Smooth rendering with custom snake assets for head, body, and tail.
   
----
-
-## Features
-
-- **Grid-based movement:** 30x26 grid cells, each 25x25 pixels.
-- **Collision detection:** Walls and self-collision detection to end the game.
-- **Food spawning:** Food randomly appears inside the play area.
-- **Snake growth:** The snake length increases by 1 segment each time food is eaten.
-- **Custom graphics:** Snake and food sprites with rotation for smooth animation.
-
 ---
 
 ## Installation
@@ -46,18 +34,8 @@ This Snake game implements a grid-based gameplay where the snake moves around co
 
 ### Steps:
 
-1. Clone this repository:
-   ```
-   git clone https://github.com/yourusername/snake-game.git
-   cd snake-game
-   ```
-2. Install pygame (if not installed) by entering the command into cmd (Command Prompt):
-   ```
-   pip install pygame
-
-3. Run the game
-   ```
-   python main.py
+1. Download the latest release Snake_Game.exe from the Releases page on this repository.
+2. Run the Snake_Game.exe file by double-clicking it.
 
 ---
 
@@ -74,15 +52,22 @@ This Snake game implements a grid-based gameplay where the snake moves around co
   ```
   snake-game/
   │
-  ├── assets/                  # Image assets for snake and food
-  │   ├── snake_head1.png
-  │   ├── snake_body1.png
-  │   ├── snake_tail1.png
-  │   └── food.png
+  ├── assets/                  # Game assets
+  │   ├── fonts/               # Fonts used in the game
+  │   │   └── (font files here)
+  │   ├── images/              # Images for snake, food, UI, etc.
+  │   │   ├── snake_head_{color}.png
+  │   │   ├── snake_body_{color}.png
+  │   │   ├── snake_tail_{color}.png
+  │   │   └── food.png
+  │   └── sfx/                 # Sound effects and music
+  │       └── (sound files here)
   │
   ├── main.py                  # Main game loop and initialization
   ├── snake.py                 # Snake class with movement, collision, and rendering logic
   ├── food.py                  # Food class handling random spawning
+  ├── settings.py              # Settings management (load/save, configs)
+  ├── settings.json            # JSON file storing persistent user settings
   └── README.md                # Project documentation (this file)
   ```
 
