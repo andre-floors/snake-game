@@ -1,3 +1,4 @@
+![Snake Game Banner](./assets/images/game/banner.png)
 # Snake Game
 
 A classic Snake game developed in Python using the [Pygame](https://www.pygame.org/) library.  
