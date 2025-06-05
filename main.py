@@ -125,6 +125,8 @@ game_over_sound.set_volume(volume)
 move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
 # High Score Update
 high_score = load_high_score()
+# Render Snake (if color was changed)
+snake = Snake([(5, 10), (4, 10), (3, 10)])
 
 # Game State Flags
 score = 0
