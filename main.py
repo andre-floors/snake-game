@@ -38,12 +38,6 @@ GRID_HEIGHT = 26
 GRID_TOP_LEFT_X = 0
 GRID_TOP_LEFT_Y = 101
 
-# Base coordinates for snake
-snake = Snake([(5, 10), (4, 10), (3, 10)])
-
-# Cell range of food spawning
-food = Food(30, 26, snake.get_positions())
-
 # Load High Score
 def load_high_score():
     try:
@@ -127,6 +121,8 @@ move_delay = settings.SPEED_VALUES[settings.settings["game_speed"]]
 high_score = load_high_score()
 # Render Snake (if color was changed)
 snake = Snake([(5, 10), (4, 10), (3, 10)])
+# Cell range of food spawning
+food = Food(30, 26, snake.get_positions())
 
 # Game State Flags
 score = 0
