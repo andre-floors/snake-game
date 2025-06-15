@@ -1,1 +1,6 @@
-{"music_on": true, "volume": 50, "game_speed": "normal", "snake_color": "blue"}
+{
+  "music_on": true,
+  "volume": 50,
+  "game_speed": "normal",
+  "snake_color": "blue"
+}

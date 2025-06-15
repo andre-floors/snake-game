@@ -316,15 +316,6 @@ while running:
             game_over_sound.play()
             game_over = True
 
-        # Change high score and play sound when high score is surpassed
-        if score > high_score:
-            if not high_score_surpassed:
-                beat_highscore_sound.play()
-                high_score_surpassed = True
-            high_score = score
-            with open("highscore.txt", "w") as f:
-                f.write(str(high_score))
-
         # Movement speed of snake
         current_time = time.time()
         if has_moved and current_time - last_move_time > move_delay:
@@ -343,6 +334,15 @@ while running:
                 score += 1
                 eat_food_sound.play()
             food.respawn(snake.get_positions())
+        
+        # Change high score and play sound when high score is surpassed
+        if score > high_score:
+            if not high_score_surpassed:
+                beat_highscore_sound.play()
+                high_score_surpassed = True
+            high_score = score
+            with open("highscore.txt", "w") as f:
+                f.write(str(high_score))
 
     # Render Background
     screen.blit(background, (0, 0))
